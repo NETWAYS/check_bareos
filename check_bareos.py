@@ -63,7 +63,7 @@ def checkFailedBackups(courser, time, warning, critical):
     query = """
     SELECT Job.Name,Level,starttime, JobStatus
     FROM Job
-    Where JobStatus in ('E','f') and starttime > (now()::date-""" + str(time) + """ * '1 day'::INTERVAL);
+    Where JobStatus in ('E','f') and starttime > DATE_SUB(now(), INTERVAL """ + str(time) + """ DAY);
     """
     courser.execute(query)
     results = courser.fetchall()  # Returns a value
@@ -77,7 +77,7 @@ def checkFailedBackups(courser, time, warning, critical):
             checkState["returnMessage"] = "WARNING - " + str(result) + " Backups failed/canceled last " + str(time) + " days"
     else:
             checkState["returnCode"] = 0
-            checkState["returnMessage"] = "OK - No Backup failed in the last " + str(time) + " days"
+            checkState["returnMessage"] = "OK - Only " + str(result) + " Backups failed in the last " + str(time) + " days"
     checkState["performanceData"] = "Failed=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
    
     return checkState
@@ -90,7 +90,7 @@ def checkBackupSize(courser, time, kind, factor):
                 query = """
                 SELECT ROUND(SUM(JobBytes/""" + str(float(factor)) + """),3)
                 FROM Job
-                Where Level in (""" + kind + """) and starttime > (now()-""" + str(time) + """ * '1 day'::INTERVAL) ;
+                Where Level in (""" + kind + """) and starttime > DATE_SUB(now(), INTERVAL """ + str(time) + """ DAY);
                 """
                 courser.execute(query)
                 results = courser.fetchone()  # Returns a value
