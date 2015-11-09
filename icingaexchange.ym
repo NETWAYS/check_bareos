@@ -1,0 +1,17 @@
+name: check_bareos
+description: "file:///README.md"
+url: "https://github.com/theGidy/check_bareos"
+tags: Statistic
+vendor: Linux
+target: Operating System
+type: Plugin
+license: gplv3
+releases: 
+  - 
+    name: 1.0
+    description: "1.0 Release"
+    files: 
+      - 
+        name: check_bareos.py
+        url: "file:///check_bareos.py"
+        description: "First release"
