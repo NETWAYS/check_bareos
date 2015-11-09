@@ -477,7 +477,7 @@ def argumentParser():
     statusParser.set_defaults(func=checkStatus)
     statusGroup.add_argument('-b', '--totalBackupsSize', dest='totalBackupsSize', action='store_true', help='the size of all backups in the database [use time and kind for mor restrictions]')
     statusGroup.add_argument('-e', '--emptyBackups', dest='emptyBackups', action='store_true', help='Check if a successful backup have 0 bytes [only wise for full backups]')
-    statusGroup.add_argument('-o', '--oversizedBackup', dest='oversizedBackups', action='store_true', help='Check if a successful backup have 0 bytes [only wise for full backups]')
+    statusGroup.add_argument('-o', '--oversizedBackup', dest='oversizedBackups', action='store_true', help='Check if a backup have more than n TB')
     statusGroup.add_argument('-fb', '--failedBackups', dest='failedBackups', action='store_true', help='Check if a backup failed in the last n day')
     statusParser.add_argument('-f', '--full', dest='full', action='store_true', help='Backup kind full')
     statusParser.add_argument('-i', '--inc', dest='inc', action='store_true', help='Backup kind inc')
