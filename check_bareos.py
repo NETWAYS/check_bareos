@@ -6,12 +6,13 @@
 # E-Mail: Philipp.Posovszky@dlr.de
 # Date : 22/04/2015
 #
-# Version: 1.0.0
+# Version: 1.0.1
 #
 # This program is free software; you can redistribute it or modify
 # it under the terms of the GNU General Public License version 3.0
 #
 # Changelog:
+# 	- 1.0.1 remove 'error' tapes from expire check and correct the help description 
 #
 #
 # Plugin check for icinga

@@ -8,8 +8,8 @@ type: Plugin
 license: gplv3
 releases: 
   - 
-    name: 1.0
-    description: "1.0 Release"
+    name: 1.0.1
+    description: "1.0.1 Release"
     files: 
       - 
         name: check_bareos.py
