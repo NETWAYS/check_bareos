@@ -15,3 +15,4 @@ releases:
         name: check_bareos.py
         url: "file:///check_bareos.py"
         description: "First release"
+        checksum: 9b2b83ee00a3bec52e92a573eab5d989 
