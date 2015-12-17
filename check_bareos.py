@@ -5,14 +5,18 @@
 # Author : Philipp Posovszky, DLR
 # E-Mail: Philipp.Posovszky@dlr.de
 # Date : 22/04/2015
+# 
+# Modifications : Thomas Widhalm, NETways GmbH
+# E-Mail: widhalmt@widhalm.or.at
 #
-# Version: 1.0.1
+# Version: 1.0.2
 #
 # This program is free software; you can redistribute it or modify
 # it under the terms of the GNU General Public License version 3.0
 #
 # Changelog:
 # 	- 1.0.1 remove 'error' tapes from expire check and correct the help description 
+#	- 1.0.2 start to rework for chosing correct query for the database type (MySQL -vs - PostgreSQL)
 #
 #
 # Plugin check for icinga
@@ -61,11 +65,20 @@ def checkFailedBackups(courser, time, warning, critical):
     checkState = {}
     if time == None:
         time = 7
-    query = """
-    SELECT Job.Name,Level,starttime, JobStatus
-    FROM Job
-    Where JobStatus in ('E','f') and starttime > DATE_SUB(now(), INTERVAL """ + str(time) + """ DAY);
-    """
+# MySQL needs other Queries than PostgreSQL
+    if(database == "postgresql" or database == "p" or database == "psql"):
+        query = """
+        SELECT Job.Name,Level,starttime, JobStatus
+        FROM Job
+        Where JobStatus in ('E','f') and starttime > (now()::date-""" + str(time) + """ * '1 day'::INTERVAL);
+        """
+# According to --help output, MySQL is the default
+    else:
+        query = """
+        SELECT Job.Name,Level,starttime, JobStatus
+        FROM Job
+        Where JobStatus in ('E','f') and starttime > DATE_SUB(now(), INTERVAL """ + str(time) + """ DAY);
+        """
     courser.execute(query)
     results = courser.fetchall()  # Returns a value
     result = len(results)
@@ -88,11 +101,20 @@ def checkFailedBackups(courser, time, warning, critical):
        
 def checkBackupSize(courser, time, kind, factor):
             if time != None: 
-                query = """
-                SELECT ROUND(SUM(JobBytes/""" + str(float(factor)) + """),3)
-                FROM Job
-                Where Level in (""" + kind + """) and starttime > DATE_SUB(now(), INTERVAL """ + str(time) + """ DAY);
-                """
+# MySQL needs other Queries than PostgreSQL
+                if(database == "postgresql" or database == "p" or database == "psql"):
+                    query = """
+                    SELECT ROUND(SUM(JobBytes/""" + str(float(factor)) + """),3)
+                    FROM Job
+                    Where Level in (""" + kind + """) and starttime > (now()-""" + str(time) + """ * '1 day'::INTERVAL) ;
+                    """
+# According to --help output MySQL is the default
+                else:
+                    query = """
+                    SELECT ROUND(SUM(JobBytes/""" + str(float(factor)) + """),3)
+                    FROM Job
+                    Where Level in (""" + kind + """) and starttime > DATE_SUB(now(), INTERVAL """ + str(time) + """ DAY);
+                    """
                 courser.execute(query)
                 results = courser.fetchone()  # Returns a value
                 return results[0]
