@@ -30,6 +30,8 @@ import MySQLdb
 
 # Variables
 databaseName = 'bareos'
+# Used to differentiate between database specific queries
+databaseType = 'mysql'
 
 def createBackupKindString(full, inc, diff):
     if full == False and inc == False and diff == False:
@@ -66,7 +68,7 @@ def checkFailedBackups(courser, time, warning, critical):
     if time == None:
         time = 7
 # MySQL needs other Queries than PostgreSQL
-    if(database == "postgresql" or database == "p" or database == "psql"):
+    if(databaseType == "psql"):
         query = """
         SELECT Job.Name,Level,starttime, JobStatus
         FROM Job
@@ -102,7 +104,7 @@ def checkFailedBackups(courser, time, warning, critical):
 def checkBackupSize(courser, time, kind, factor):
             if time != None: 
 # MySQL needs other Queries than PostgreSQL
-                if(database == "postgresql" or database == "p" or database == "psql"):
+                if(databaseType == "psql"):
                     query = """
                     SELECT ROUND(SUM(JobBytes/""" + str(float(factor)) + """),3)
                     FROM Job
@@ -157,11 +159,20 @@ def checkOversizedBackups(courser, time, size, kind, unit, warning, critical):
             if time == None:
                 time = 7
             factor = createFactor(unit)
-            query = """
-            SELECT Job.Name,Level,starttime, JobBytes/""" + str(float(factor)) + """
-            FROM Job
-            Where Level in (""" + kind + """) and starttime > (now()::date-""" + str(time) + """ * '1 day'::INTERVAL) and JobBytes/""" + str(float(factor)) + """>""" + str(size) + """;
-            """
+# MySQL needs other Queries than PostgreSQL
+            if(databaseType == "psql"):
+                query = """
+                SELECT Job.Name,Level,starttime, JobBytes/""" + str(float(factor)) + """
+                FROM Job
+                Where Level in (""" + kind + """) and starttime > (now()::date-""" + str(time) + """ * '1 day'::INTERVAL) and JobBytes/""" + str(float(factor)) + """>""" + str(size) + """;
+                """
+# MySQL is the default
+            else:
+                query = """
+                SELECT Job.Name,Level,starttime, JobBytes/""" + str(float(factor)) + """
+                FROM Job
+                Where Level in (""" + kind + """) and starttime > DATE_SUB(now(), INTERVAL """ + str(time) + """ DAY) and JobBytes/""" + str(float(factor)) + """>""" + str(size) + """;
+                """
             courser.execute(query)
             results = courser.fetchall()  # Returns a value
             result = len(results) 
@@ -419,6 +430,8 @@ def checkEmptyTapes(courser, warning, critical):
 
 def connectDB(userName, pw, hostName, database):
     if(database == "postgresql" or database == "p" or database == "psql"):
+        global databaseType
+        databaseType = 'psql'
         try:
             # Define our connection string
             connString = "host='" + hostName + "' dbname='" + databaseName + "' user='" + userName + "' password='" + pw + "'"
