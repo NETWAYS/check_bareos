@@ -67,14 +67,14 @@ def checkFailedBackups(courser, time, warning, critical):
     checkState = {}
     if time == None:
         time = 7
-# MySQL needs other Queries than PostgreSQL
+    # MySQL needs other Queries than PostgreSQL
     if(databaseType == "psql"):
         query = """
         SELECT Job.Name,Level,starttime, JobStatus
         FROM Job
         Where JobStatus in ('E','f') and starttime > (now()::date-""" + str(time) + """ * '1 day'::INTERVAL);
         """
-# According to --help output, MySQL is the default
+    # According to --help output, MySQL is the default
     else:
         query = """
         SELECT Job.Name,Level,starttime, JobStatus
@@ -103,14 +103,14 @@ def checkFailedBackups(courser, time, warning, critical):
        
 def checkBackupSize(courser, time, kind, factor):
             if time != None: 
-# MySQL needs other Queries than PostgreSQL
+                # MySQL needs other Queries than PostgreSQL
                 if(databaseType == "psql"):
                     query = """
                     SELECT ROUND(SUM(JobBytes/""" + str(float(factor)) + """),3)
                     FROM Job
                     Where Level in (""" + kind + """) and starttime > (now()-""" + str(time) + """ * '1 day'::INTERVAL) ;
                     """
-# According to --help output MySQL is the default
+                # According to --help output MySQL is the default
                 else:
                     query = """
                     SELECT ROUND(SUM(JobBytes/""" + str(float(factor)) + """),3)
@@ -159,14 +159,14 @@ def checkOversizedBackups(courser, time, size, kind, unit, warning, critical):
             if time == None:
                 time = 7
             factor = createFactor(unit)
-# MySQL needs other Queries than PostgreSQL
+            # MySQL needs other Queries than PostgreSQL
             if(databaseType == "psql"):
                 query = """
                 SELECT Job.Name,Level,starttime, JobBytes/""" + str(float(factor)) + """
                 FROM Job
                 Where Level in (""" + kind + """) and starttime > (now()::date-""" + str(time) + """ * '1 day'::INTERVAL) and JobBytes/""" + str(float(factor)) + """>""" + str(size) + """;
                 """
-# MySQL is the default
+            # MySQL is the default
             else:
                 query = """
                 SELECT Job.Name,Level,starttime, JobBytes/""" + str(float(factor)) + """
@@ -193,14 +193,14 @@ def checkEmptyBackups(cursor, time, kind, warning, critical):
             checkState = {}
             if time == None:
                 time = 7
-# MySQL needs other Queries than PostgreSQL
+            # MySQL needs other Queries than PostgreSQL
             if(databaseType == "psql"):
                 query = """
                 SELECT Job.Name,Level,starttime
                 FROM Job
                 Where Level in (""" + str(kind) + """) and JobBytes=0 and starttime > (now()::date-""" + str(time) + """ * '1 day'::INTERVAL) and JobStatus in ('T');
                 """
-# MySQL is the default
+            # MySQL is the default
             else:
                 query = """
                 SELECT Job.Name,Level,starttime
@@ -229,14 +229,14 @@ def checkJobs(cursor, state, kind, time, warning, critical):
     checkState = {}
     if time == None:
         time = 7
-# MySQL needs other Queries than PostgreSQL
+    # MySQL needs other Queries than PostgreSQL
     if(databaseType == "psql"):
         query = """
         Select count(Job.Name)
         From Job
         Where Job.JobStatus like '"""+str(state)+"""' and (starttime > (now()::date-"""+str(time)+""" * '1 day'::INTERVAL) or starttime IS NULL) and Job.Level in ("""+kind+""");
         """
-# MySQL is the default
+    # MySQL is the default
     else:
         query = """
         Select count(Job.Name)
@@ -264,14 +264,14 @@ def checkSingleJob(cursor, name, state, kind, time, warning, critical):
     checkState = {}
     if time == None:
         time = 7
-# MySQL needs other Queries than PostgreSQL
+    # MySQL needs other Queries than PostgreSQL
     if(databaseType == "psql"):
         query = """
         Select Job.Name,Job.JobStatus, Job.Starttime
         FROm Job
         Where Job.Name like '%"""+name+"""%' and Job.JobStatus like '"""+state+"""' and (starttime > (now()::date-"""+str(time)+""" * '1 day'::INTERVAL) or starttime IS NULL) and Job.Level in ("""+kind+""");
         """
-# MySQL is the default
+    # MySQL is the default
     else:
         query = """
         Select Job.Name,Job.JobStatus, Job.Starttime
@@ -299,14 +299,14 @@ def checkRunTimeJobs(cursor,name,state,time,warning,critical):
     checkState = {}
     if time == None:
         time = 7
-# MySQL needs other Queries than PostgreSQL
+    # MySQL needs other Queries than PostgreSQL
     if(databaseType == "psql"):
         query = """
         Select Count(Job.Name)
         FROm Job
         Where starttime < (now()::date-"""+str(time)+""" * '1 day'::INTERVAL) and Job.JobStatus like '"""+state+"""';
         """
-# MySQL is the default
+    # MySQL is the default
     else:
         query = """
         Select Count(Job.Name)
