@@ -311,7 +311,7 @@ def checkRunTimeJobs(cursor,name,state,time,warning,critical):
         query = """
         Select Count(Job.Name)
         FROm Job
-        Where starttime > DATE_SUB(now(), INTERVAL """ + str(time) + """ DAY) and Job.JobStatus like '"""+state+"""';
+        Where starttime < DATE_SUB(now(), INTERVAL """ + str(time) + """ DAY) and Job.JobStatus like '"""+state+"""';
         """
     cursor.execute(query)
     results = cursor.fetchone()  # Returns a value 
