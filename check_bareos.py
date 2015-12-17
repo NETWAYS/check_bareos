@@ -193,11 +193,20 @@ def checkEmptyBackups(cursor, time, kind, warning, critical):
             checkState = {}
             if time == None:
                 time = 7
-            query = """
-            SELECT Job.Name,Level,starttime
-            FROM Job
-            Where Level in (""" + str(kind) + """) and JobBytes=0 and starttime > (now()::date-""" + str(time) + """ * '1 day'::INTERVAL) and JobStatus in ('T');
-            """
+# MySQL needs other Queries than PostgreSQL
+            if(databaseType == "psql"):
+                query = """
+                SELECT Job.Name,Level,starttime
+                FROM Job
+                Where Level in (""" + str(kind) + """) and JobBytes=0 and starttime > (now()::date-""" + str(time) + """ * '1 day'::INTERVAL) and JobStatus in ('T');
+                """
+# MySQL is the default
+            else:
+                query = """
+                SELECT Job.Name,Level,starttime
+                FROM Job
+                Where Level in (""" + str(kind) + """) and JobBytes=0 and starttime > DATE_SUB(now(), INTERVAL """ + str(time) + """ DAY) and JobStatus in ('T');
+                """
             cursor.execute(query)
             results = cursor.fetchall()  # Returns a value
             result = len(results) 
