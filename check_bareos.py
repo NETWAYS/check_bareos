@@ -229,11 +229,20 @@ def checkJobs(cursor, state, kind, time, warning, critical):
     checkState = {}
     if time == None:
         time = 7
-    query = """
-    Select count(Job.Name)
-    From Job
-    Where Job.JobStatus like '"""+str(state)+"""' and (starttime > (now()::date-"""+str(time)+""" * '1 day'::INTERVAL) or starttime IS NULL) and Job.Level in ("""+kind+""");
-    """
+# MySQL needs other Queries than PostgreSQL
+    if(databaseType == "psql"):
+        query = """
+        Select count(Job.Name)
+        From Job
+        Where Job.JobStatus like '"""+str(state)+"""' and (starttime > (now()::date-"""+str(time)+""" * '1 day'::INTERVAL) or starttime IS NULL) and Job.Level in ("""+kind+""");
+        """
+# MySQL is the default
+    else:
+        query = """
+        Select count(Job.Name)
+        From Job
+        Where Job.JobStatus like '"""+str(state)+"""' and (starttime > DATE_SUB(now(), INTERVAL """ + str(time) + """ DAY) or starttime IS NULL) and Job.Level in ("""+kind+""");
+        """
     cursor.execute(query)
     results = cursor.fetchone()  # Returns a value 
     result = float(results[0])
@@ -255,11 +264,20 @@ def checkSingleJob(cursor, name, state, kind, time, warning, critical):
     checkState = {}
     if time == None:
         time = 7
-    query = """
-    Select Job.Name,Job.JobStatus, Job.Starttime
-    FROm Job
-    Where Job.Name like '%"""+name+"""%' and Job.JobStatus like '"""+state+"""' and (starttime > (now()::date-"""+str(time)+""" * '1 day'::INTERVAL) or starttime IS NULL) and Job.Level in ("""+kind+""");
-    """
+# MySQL needs other Queries than PostgreSQL
+    if(databaseType == "psql"):
+        query = """
+        Select Job.Name,Job.JobStatus, Job.Starttime
+        FROm Job
+        Where Job.Name like '%"""+name+"""%' and Job.JobStatus like '"""+state+"""' and (starttime > (now()::date-"""+str(time)+""" * '1 day'::INTERVAL) or starttime IS NULL) and Job.Level in ("""+kind+""");
+        """
+# MySQL is the default
+    else:
+        query = """
+        Select Job.Name,Job.JobStatus, Job.Starttime
+        FROm Job
+        Where Job.Name like '%"""+name+"""%' and Job.JobStatus like '"""+state+"""' and (starttime > DATE_SUB(now(), INTERVAL """ + str(time) + """ DAY) or starttime IS NULL) and Job.Level in ("""+kind+""");
+        """
     cursor.execute(query)
     results = cursor.fetchall()  # Returns a value 
     result = len(results)
@@ -281,11 +299,20 @@ def checkRunTimeJobs(cursor,name,state,time,warning,critical):
     checkState = {}
     if time == None:
         time = 7
-    query = """
-    Select Count(Job.Name)
-    FROm Job
-    Where starttime < (now()::date-"""+str(time)+""" * '1 day'::INTERVAL) and Job.JobStatus like '"""+state+"""';
-    """
+# MySQL needs other Queries than PostgreSQL
+    if(databaseType == "psql"):
+        query = """
+        Select Count(Job.Name)
+        FROm Job
+        Where starttime < (now()::date-"""+str(time)+""" * '1 day'::INTERVAL) and Job.JobStatus like '"""+state+"""';
+        """
+# MySQL is the default
+    else:
+        query = """
+        Select Count(Job.Name)
+        FROm Job
+        Where starttime > DATE_SUB(now(), INTERVAL """ + str(time) + """ DAY) and Job.JobStatus like '"""+state+"""';
+        """
     cursor.execute(query)
     results = cursor.fetchone()  # Returns a value 
     result = float(results[0])
