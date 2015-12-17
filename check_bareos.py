@@ -6,12 +6,13 @@
 # E-Mail: Philipp.Posovszky@dlr.de
 # Date : 22/04/2015
 #
-# Version: 1.0.0
+# Version: 1.0.1
 #
 # This program is free software; you can redistribute it or modify
 # it under the terms of the GNU General Public License version 3.0
 #
 # Changelog:
+# 	- 1.0.1 remove 'error' tapes from expire check and correct the help description 
 #
 #
 # Plugin check for icinga
@@ -293,7 +294,7 @@ def checkExpiredTapes(cursor, warning, critical):
     query = """
     SELECT Count(MediaId)
     FROM Media
-    WHERE lastwritten+(media.volretention * '1 second'::INTERVAL)<now();
+    WHERE lastwritten+(media.volretention * '1 second'::INTERVAL)<now() and volstatus not like 'Error';
     """
     cursor.execute(query)
     results = cursor.fetchone()  # Returns a value 
@@ -318,7 +319,7 @@ def checkWillExpiredTapes(cursor, time, warning, critical):
     query = """
     SELECT Count(MediaId)
     FROM Media
-    WHERE lastwritten+(media.volretention * '1 second'::INTERVAL)<now()+(""" + str(time) + """ * '1 day'::INTERVAL) and lastwritten+(media.volretention * '1 second'::INTERVAL)>now();
+    WHERE lastwritten+(media.volretention * '1 second'::INTERVAL)<now()+(""" + str(time) + """ * '1 day'::INTERVAL) and lastwritten+(media.volretention * '1 second'::INTERVAL)>now() and volstatus not like 'Error';;
     """
     cursor.execute(query)
     results = cursor.fetchone()  # Returns a value 
@@ -477,7 +478,7 @@ def argumentParser():
     statusParser.set_defaults(func=checkStatus)
     statusGroup.add_argument('-b', '--totalBackupsSize', dest='totalBackupsSize', action='store_true', help='the size of all backups in the database [use time and kind for mor restrictions]')
     statusGroup.add_argument('-e', '--emptyBackups', dest='emptyBackups', action='store_true', help='Check if a successful backup have 0 bytes [only wise for full backups]')
-    statusGroup.add_argument('-o', '--oversizedBackup', dest='oversizedBackups', action='store_true', help='Check if a successful backup have 0 bytes [only wise for full backups]')
+    statusGroup.add_argument('-o', '--oversizedBackup', dest='oversizedBackups', action='store_true', help='Check if a backup have more than n TB')
     statusGroup.add_argument('-fb', '--failedBackups', dest='failedBackups', action='store_true', help='Check if a backup failed in the last n day')
     statusParser.add_argument('-f', '--full', dest='full', action='store_true', help='Backup kind full')
     statusParser.add_argument('-i', '--inc', dest='inc', action='store_true', help='Backup kind inc')
