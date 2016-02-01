@@ -443,7 +443,7 @@ def checkEmptyTapes(courser, warning, critical):
           WHERE Media.PoolId=Pool.PoolId
           AND Slot>0 AND InChanger=1
           AND Media.StorageId=Storage.StorageId
-          AND (VolStatus like 'Purged' or VolStatus like 'Recycle' or lastwritten+(media.volretention * '1 second'::INTERVAL)<now());
+          AND (VolStatus like 'Purged' or VolStatus like 'Recycle' or lastwritten+(media.volretention * '1 second'::INTERVAL)<now() and VolStatus not like 'Error');
         """
         courser.execute(query)
         results = courser.fetchone()  # Returns a value 
