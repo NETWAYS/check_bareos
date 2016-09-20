@@ -1,6 +1,6 @@
 name: check_bareos
 description: "file:///README.md"
-url: "https://github.com/theGidy/check_bareos"
+url: "https://github.com/widhalmt/check_bareos"
 tags: Statistic
 vendor: Linux
 target: Operating System
