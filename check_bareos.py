@@ -9,7 +9,7 @@
 # Modifications : Thomas Widhalm, NETways GmbH
 # E-Mail: widhalmt@widhalm.or.at
 #
-# Version: 1.0.2
+# Version: 1.0.3
 #
 # This program is free software; you can redistribute it or modify
 # it under the terms of the GNU General Public License version 3.0
@@ -17,6 +17,7 @@
 # Changelog:
 # 	- 1.0.1 remove 'error' tapes from expire check and correct the help description 
 #	- 1.0.2 start to rework for chosing correct query for the database type (MySQL -vs - PostgreSQL)
+#	- 1.0.3 add port parameter for MySQL and PostgreSQL databases
 #
 #
 # Plugin check for icinga
@@ -464,13 +465,13 @@ def checkEmptyTapes(courser, warning, critical):
 
 
 
-def connectDB(userName, pw, hostName, database):
+def connectDB(userName, pw, hostName, database, port):
     if(database == "postgresql" or database == "p" or database == "psql"):
         global databaseType
         databaseType = 'psql'
         try:
             # Define our connection string
-            connString = "host='" + hostName + "' dbname='" + databaseName + "' user='" + userName + "' password='" + pw + "'"
+            connString = "host='" + hostName + "' port=" + port + " dbname='" + databaseName + "' user='" + userName + "' password='" + pw + "'"
             # get a connection, if a connect cannot be made an exception will be raised here
             conn = psycopg2.connect(connString)
             # conn.cursor will return a cursor object, you can use this cursor to perform queries
@@ -486,8 +487,8 @@ def connectDB(userName, pw, hostName, database):
          
     if(database == "mysql" or database == "m"):
         try:
-            conn = MySQLdb.connect(host=hostName, user=userName, passwd=pw, db=databaseName)
-            return conn.cursor() 
+            conn = MySQLdb.connect(host=hostName, user=userName, passwd=pw, db=databaseName, port=port)
+            return conn.cursor()
         except MySQLdb.Error, e:
                         checkState = {}
                         checkState["returnCode"] = 2
@@ -509,6 +510,7 @@ def argumentParser():
     group.add_argument('-u', '--user', dest='user', action='store', required=True, help='user name for the database connections')
     group.add_argument('-p', '--password', dest='password', action='store', help='password for the database connections', default="")
     group.add_argument('-H', '--Host', dest='host', action='store', help='database host', default="127.0.0.1")
+    group.add_argument('-P', '--port', dest='port', action='store', help='database port', default=3306, type=int)
     group.add_argument('-v', '--version', action='version', version='%(prog)s 1.0.0')
     parser.add_argument('-d', '--database', dest='database', choices=['mysql', 'm', 'postgresql', 'p', 'psql'], default='mysql', help='the database kind for the database connection (m=mysql, p=psql) (Default=Mysql)')
     
@@ -574,7 +576,7 @@ def checkConnection(cursor):
         return True
 
 def checkTape(args):
-    cursor = connectDB(args.user, args.password, args.host, args.database);
+    cursor = connectDB(args.user, args.password, args.host, args.database, args.port);
     checkResult = {}
     if checkConnection(cursor):     
         if args.emptyTapes:
@@ -592,7 +594,7 @@ def checkTape(args):
         
 
 def checkJob(args):
-    cursor = connectDB(args.user, args.password, args.host, args.database);
+    cursor = connectDB(args.user, args.password, args.host, args.database, args.port);
     checkResult = {}
     if checkConnection(cursor):  
         if args.checkJob:
@@ -608,7 +610,7 @@ def checkJob(args):
 
        
 def checkStatus(args):
-    cursor = connectDB(args.user, args.password, args.host, args.database);
+    cursor = connectDB(args.user, args.password, args.host, args.database, args.port);
     checkResult = {}
     if checkConnection(cursor):  
         if args.emptyBackups:
