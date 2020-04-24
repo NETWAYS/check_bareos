@@ -9,7 +9,7 @@
 # Modifications : Thomas Widhalm, NETways GmbH
 # E-Mail: widhalmt@widhalm.or.at
 #
-# Version: 1.0.2
+# Version: 1.0.3
 #
 # This program is free software; you can redistribute it or modify
 # it under the terms of the GNU General Public License version 3.0
@@ -17,6 +17,7 @@
 # Changelog:
 # 	- 1.0.1 remove 'error' tapes from expire check and correct the help description
 #	- 1.0.2 start to rework for chosing correct query for the database type (MySQL -vs - PostgreSQL)
+#	- 1.0.3 New option --recurringFailedBackups for identifing repeated issues.
 #
 #
 # Plugin check for icinga
@@ -98,7 +99,56 @@ def checkFailedBackups(courser, time, warning, critical):
 
     return checkState
 
+def checkRecurringFailedBackups(courser, time, warning, critical):
+    checkState = {}
+    if time == None:
+        time = 7
+    # MySQL needs other Queries than PostgreSQL
+    if(databaseType == "psql"):
+        query = """
+        SELECT Job.Name,Level,starttime, JobStatus
+        FROM Job
+        Where JobStatus in ('E','f') and starttime > (now()::date-""" + str(time) + """ * '1 day'::INTERVAL);
+        """
+    # According to --help output, MySQL is the default
+    else:
+        query = """
+        SELECT Job.Name,Level,starttime, JobStatus
+        FROM Job
+        Where JobStatus in ('E','f') and starttime > DATE_SUB(now(), INTERVAL """ + str(time) + """ DAY);
+        """
+    courser.execute(query)
+    results = courser.fetchall()  # Returns a value
+    result = len(results)
 
+    if result > 0:
+        # Check each failed jobname
+        for failed in results:
+            failed_jobname = failed[0]
+            failed_level = failed[1]
+            failed_starttime = failed[2]
+            # Check if newer successful job exists for the failed jobname
+            query = """
+            SELECT Job.Name,Level,starttime,JobStatus
+            FROM Job
+            Where Job.Name = '""" + str(failed_jobname) + """' and JobStatus in ('T')
+            and Job.starttime > '""" + str(failed_starttime) + """'
+            and Job.Level = '""" + str(failed_level) + """';
+            """
+            courser.execute(query)
+            fixresults = courser.fetchall()  # Returns a value
+            # if there is no newer successful job, fail immediately
+            if not len(fixresults) > 0:
+                checkState["returnCode"] = 2
+                checkState["returnMessage"] = "CRITICAL - " + str(result) + " Backups failed/canceled last " + str(time) + " days"
+                break
+            # if loop did not break, set return OK but warn user
+            checkState["returnCode"] = 0
+            checkState["returnMessage"] = "OK - Some jobs failed, but new successful exists for the same jobs in the last " + str(time) + " days"
+    else:
+            checkState["returnCode"] = 0
+            checkState["returnMessage"] = "OK - No backups failed in the last " + str(time) + " days"
+    checkState["performanceData"] = "Failed=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
     return checkState
 
 def checkBackupSize(courser, time, kind, factor):
@@ -551,6 +601,7 @@ def argumentParser():
     statusGroup.add_argument('-e', '--emptyBackups', dest='emptyBackups', action='store_true', help='Check if a successful backup have 0 bytes [only wise for full backups]')
     statusGroup.add_argument('-o', '--oversizedBackup', dest='oversizedBackups', action='store_true', help='Check if a backup have more than n TB')
     statusGroup.add_argument('-fb', '--failedBackups', dest='failedBackups', action='store_true', help='Check if a backup failed in the last n day')
+    statusGroup.add_argument('-rfb', '--recurringFailedBackups', dest='recurringFailedBackups', action='store_true', help='Check if a backup failed in the last n day and there\'s no new succesful backup after that')
     statusParser.add_argument('-f', '--full', dest='full', action='store_true', help='Backup kind full')
     statusParser.add_argument('-i', '--inc', dest='inc', action='store_true', help='Backup kind inc')
     statusParser.add_argument('-d', '--diff', dest='diff', action='store_true', help='Backup kind diff')
@@ -623,6 +674,9 @@ def checkStatus(args):
         elif args.failedBackups:
             kind = createBackupKindString(args.full, args.inc, args.diff)
             checkResult = checkFailedBackups(cursor, args.time, args.warning, args.critical)
+        elif args.recurringFailedBackups:
+            kind = createBackupKindString(args.full, args.inc, args.diff)
+            checkResult = checkRecurringFailedBackups(cursor, args.time, args.warning, args.critical)
         printNagiosOutput(checkResult);
         cursor.close();
 
