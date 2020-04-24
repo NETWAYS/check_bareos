@@ -5,7 +5,7 @@
 # Author : Philipp Posovszky, DLR
 # E-Mail: Philipp.Posovszky@dlr.de
 # Date : 22/04/2015
-# 
+#
 # Modifications : Thomas Widhalm, NETways GmbH
 # E-Mail: widhalmt@widhalm.or.at
 #
@@ -15,7 +15,7 @@
 # it under the terms of the GNU General Public License version 3.0
 #
 # Changelog:
-# 	- 1.0.1 remove 'error' tapes from expire check and correct the help description 
+# 	- 1.0.1 remove 'error' tapes from expire check and correct the help description
 #	- 1.0.2 start to rework for chosing correct query for the database type (MySQL -vs - PostgreSQL)
 #
 #
@@ -26,7 +26,7 @@ import psycopg2
 import psycopg2.extras
 import sys
 import subprocess
-import MySQLdb 
+import MySQLdb
 
 # Variables
 databaseName = 'bareos'
@@ -42,7 +42,7 @@ def createBackupKindString(full, inc, diff):
     if inc:
         kind.append("'I'")
     if diff:
-        kind.append("'D'")	
+        kind.append("'D'")
 
     return ",".join(kind)
 
@@ -95,14 +95,14 @@ def checkFailedBackups(courser, time, warning, critical):
             checkState["returnCode"] = 0
             checkState["returnMessage"] = "OK - Only " + str(result) + " Backups failed in the last " + str(time) + " days"
     checkState["performanceData"] = "Failed=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
-   
+
     return checkState
-               
-   
+
+
     return checkState
-       
+
 def checkBackupSize(courser, time, kind, factor):
-            if time != None: 
+            if time != None:
                 # MySQL needs other Queries than PostgreSQL
                 if(databaseType == "psql"):
                     query = """
@@ -129,7 +129,7 @@ def checkBackupSize(courser, time, kind, factor):
                 courser.execute(query)
                 results = courser.fetchone()  # Returns a value
                 return results[0]
-            
+
 def checkTotalBackupSize(cursor, time, kind, unit, warning, critical):
             checkState = {}
             result = checkBackupSize(cursor, time, kind, createFactor(unit))
@@ -153,7 +153,7 @@ def checkTotalBackupSize(cursor, time, kind, unit, warning, critical):
                         checkState["returnMessage"] = "OK - " + str(result) + " " + unit + " Kind:" + kind
             checkState["performanceData"] = "Size=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
             return checkState
-        
+
 def checkOversizedBackups(courser, time, size, kind, unit, warning, critical):
             checkState = {}
             if time == None:
@@ -175,8 +175,8 @@ def checkOversizedBackups(courser, time, size, kind, unit, warning, critical):
                 """
             courser.execute(query)
             results = courser.fetchall()  # Returns a value
-            result = len(results) 
-    
+            result = len(results)
+
             if result >= int(critical):
                     checkState["returnCode"] = 2
                     checkState["returnMessage"] = "CRITICAL - " + str(result) + " " + kind + " Backups larger than " + str(size) + " " + unit + " in the last " + str(time) + " days"
@@ -209,8 +209,8 @@ def checkEmptyBackups(cursor, time, kind, warning, critical):
                 """
             cursor.execute(query)
             results = cursor.fetchall()  # Returns a value
-            result = len(results) 
-            
+            result = len(results)
+
             if result >= int(critical):
                     checkState["returnCode"] = 2
                     checkState["returnMessage"] = "CRITICAL - " + str(result) + " successful " + str(kind) + " backups are empty"
@@ -222,7 +222,7 @@ def checkEmptyBackups(cursor, time, kind, warning, critical):
                     checkState["returnMessage"] = "OK - All " + str(kind) + " backups are fine"
             checkState["performanceData"] = "EmptyBackups=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
             return checkState
-               
+
 
 # Checks on Jobs
 def checkJobs(cursor, state, kind, time, warning, critical):
@@ -244,7 +244,7 @@ def checkJobs(cursor, state, kind, time, warning, critical):
         Where Job.JobStatus like '"""+str(state)+"""' and (starttime > DATE_SUB(now(), INTERVAL """ + str(time) + """ DAY) or starttime IS NULL) and Job.Level in ("""+kind+""");
         """
     cursor.execute(query)
-    results = cursor.fetchone()  # Returns a value 
+    results = cursor.fetchone()  # Returns a value
     result = float(results[0])
 
     if result >= int(critical):
@@ -279,7 +279,7 @@ def checkSingleJob(cursor, name, state, kind, time, warning, critical):
         Where Job.Name like '%"""+name+"""%' and Job.JobStatus like '"""+state+"""' and (starttime > DATE_SUB(now(), INTERVAL """ + str(time) + """ DAY) or starttime IS NULL) and Job.Level in ("""+kind+""");
         """
     cursor.execute(query)
-    results = cursor.fetchall()  # Returns a value 
+    results = cursor.fetchall()  # Returns a value
     result = len(results)
 
     if result >= int(critical):
@@ -314,7 +314,7 @@ def checkRunTimeJobs(cursor,name,state,time,warning,critical):
         Where starttime < DATE_SUB(now(), INTERVAL """ + str(time) + """ DAY) and Job.JobStatus like '"""+state+"""';
         """
     cursor.execute(query)
-    results = cursor.fetchone()  # Returns a value 
+    results = cursor.fetchone()  # Returns a value
     result = float(results[0])
 
     if result >= int(critical):
@@ -330,7 +330,7 @@ def checkRunTimeJobs(cursor,name,state,time,warning,critical):
 
     return checkState
 
-     
+
 # Checks on Tapes
 def checkTapesInStorage(cursor, warning, critical):
     checkState = {}
@@ -343,9 +343,9 @@ def checkTapesInStorage(cursor, warning, critical):
     AND Media.StorageId=Storage.StorageId;
     """
     cursor.execute(query)
-    results = cursor.fetchone()  # Returns a value 
+    results = cursor.fetchone()  # Returns a value
     result = float(results[0])
-    
+
     if result <= int(critical):
         checkState["returnCode"] = 2
         checkState["returnMessage"] = "CRITICAL - Only " + str(result) + " Tapes are in the Storage"
@@ -366,9 +366,9 @@ def checkExpiredTapes(cursor, warning, critical):
     WHERE lastwritten+(media.volretention * '1 second'::INTERVAL)<now() and volstatus not like 'Error';
     """
     cursor.execute(query)
-    results = cursor.fetchone()  # Returns a value 
+    results = cursor.fetchone()  # Returns a value
     result = float(results[0])
-    
+
     if result <= int(critical):
             checkState["returnCode"] = 2
             checkState["returnMessage"] = "CRITICAL - Only " + str(result) + " expired"
@@ -379,7 +379,7 @@ def checkExpiredTapes(cursor, warning, critical):
             checkState["returnCode"] = 0
             checkState["returnMessage"] = "OK - Tapes " + str(result) + " expired"
     checkState["performanceData"] = "Expired=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
-    
+
     return checkState
 
 
@@ -391,9 +391,9 @@ def checkWillExpiredTapes(cursor, time, warning, critical):
     WHERE lastwritten+(media.volretention * '1 second'::INTERVAL)<now()+(""" + str(time) + """ * '1 day'::INTERVAL) and lastwritten+(media.volretention * '1 second'::INTERVAL)>now() and volstatus not like 'Error';;
     """
     cursor.execute(query)
-    results = cursor.fetchone()  # Returns a value 
+    results = cursor.fetchone()  # Returns a value
     result = float(results[0])
-    
+
     if result <= int(critical):
             checkState["returnCode"] = 2
             checkState["returnMessage"] = "CRITICAL - Only " + str(result) + " will expire in next " + str(time) + " days"
@@ -404,7 +404,7 @@ def checkWillExpiredTapes(cursor, time, warning, critical):
             checkState["returnCode"] = 0
             checkState["returnMessage"] = "OK - Tapes " + str(result) + " will expire in next " + str(time) + " days"
     checkState["performanceData"] = "Expire=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
-    
+
     return checkState
 
 def checkReplaceTapes(cursor, mounts, warning, critical):
@@ -416,7 +416,7 @@ def checkReplaceTapes(cursor, mounts, warning, critical):
     (VolStatus='Disabled');
     """
     cursor.execute(query)
-    results = cursor.fetchone()  # Returns a value 
+    results = cursor.fetchone()  # Returns a value
     result = float(results[0])
 
     if result >= int(critical):
@@ -430,10 +430,10 @@ def checkReplaceTapes(cursor, mounts, warning, critical):
             checkState["returnMessage"] = "OK - Tapes " + str(result) + " have to be replaced in the near future"
     checkState["performanceData"] = "Replace=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
 
-    return checkState    
+    return checkState
 
-  
-   
+
+
 
 def checkEmptyTapes(courser, warning, critical):
         checkState = {}
@@ -446,7 +446,7 @@ def checkEmptyTapes(courser, warning, critical):
           AND (VolStatus like 'Purged' or VolStatus like 'Recycle' or lastwritten+(media.volretention * '1 second'::INTERVAL)<now() and VolStatus not like 'Error');
         """
         courser.execute(query)
-        results = courser.fetchone()  # Returns a value 
+        results = courser.fetchone()  # Returns a value
         result = float(results[0])
 
         if result <= int(critical):
@@ -475,26 +475,26 @@ def connectDB(userName, pw, hostName, database):
             conn = psycopg2.connect(connString)
             # conn.cursor will return a cursor object, you can use this cursor to perform queries
             cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    
-            return cursor 
+
+            return cursor
         except psycopg2.DatabaseError, e:
             checkState = {}
             checkState["returnCode"] = 2
             checkState["returnMessage"] = "CRITICAL - " + str(e)[:-1]
             checkState["performanceData"] = ";;;;"
             printNagiosOutput(checkState)
-         
+
     if(database == "mysql" or database == "m"):
         try:
             conn = MySQLdb.connect(host=hostName, user=userName, passwd=pw, db=databaseName)
-            return conn.cursor() 
+            return conn.cursor()
         except MySQLdb.Error, e:
                         checkState = {}
                         checkState["returnCode"] = 2
                         checkState["returnMessage"] = "CRITICAL - " + str(e)[:-1]
                         checkState["performanceData"] = ";;;;"
                         printNagiosOutput(checkState)
-    
+
 def printNagiosOutput(checkResult):
     if checkResult != None:
         print checkResult["returnMessage"] + "|" + checkResult["performanceData"]
@@ -511,15 +511,15 @@ def argumentParser():
     group.add_argument('-H', '--Host', dest='host', action='store', help='database host', default="127.0.0.1")
     group.add_argument('-v', '--version', action='version', version='%(prog)s 1.0.0')
     parser.add_argument('-d', '--database', dest='database', choices=['mysql', 'm', 'postgresql', 'p', 'psql'], default='mysql', help='the database kind for the database connection (m=mysql, p=psql) (Default=Mysql)')
-    
+
     subParser = parser.add_subparsers()
-    
+
     jobParser = subParser.add_parser('job', help='Specific checks on a job');
     jobGroup = jobParser.add_mutually_exclusive_group(required=True)
-    jobParser.set_defaults(func=checkJob) 
-    jobGroup.add_argument('-js', '--checkJobs', dest='checkJobs', action='store_true', help='Check how many jobs are in a specific state [default=queued]')  
+    jobParser.set_defaults(func=checkJob)
+    jobGroup.add_argument('-js', '--checkJobs', dest='checkJobs', action='store_true', help='Check how many jobs are in a specific state [default=queued]')
     jobGroup.add_argument('-j', '--checkJob', dest='checkJob', action='store_true', help='Check the state of a specific job [default=queued]')
-    jobGroup.add_argument('-rt', '--runTimeJobs', dest='runTimeJobs', action='store_true', help='Check if a backup runs longer then n day')  
+    jobGroup.add_argument('-rt', '--runTimeJobs', dest='runTimeJobs', action='store_true', help='Check if a backup runs longer then n day')
     jobParser.add_argument('-n', '--name', dest='name', action='store', help='Name of the job')
     jobParser.add_argument('-t', '--time', dest='time', action='store', help='Time in days (default=7 days)')
     jobParser.add_argument('-u', '--unit', dest='unit', choices=['GB', 'TB', 'PB'], default='TB', help='display unit')
@@ -529,7 +529,7 @@ def argumentParser():
     jobParser.add_argument('-f', '--full', dest='full', action='store_true', help='Backup kind full')
     jobParser.add_argument('-i', '--inc', dest='inc', action='store_true', help='Backup kind inc')
     jobParser.add_argument('-d', '--diff', dest='diff', action='store_true', help='Backup kind diff')
-   
+
     tapeParser = subParser.add_parser('tape', help='Specific checks on a tapes');
     tapeGroup = tapeParser.add_mutually_exclusive_group(required=True);
     tapeParser.set_defaults(func=checkTape)
@@ -559,7 +559,7 @@ def argumentParser():
     statusParser.add_argument('-c', '--critical', dest='critical', action='store', help='Critical value [default=10]', default=10)
     statusParser.add_argument('-s', '--size', dest='size', action='store', help='Border value for oversized backups [default=2]', default=2)
     statusParser.add_argument('-u', '--unit', dest='unit', choices=['MB', 'GB', 'TB', 'PB', 'EB'], default='TB', help='display unit [default=TB]')
-   
+
 
     return parser
 
@@ -576,7 +576,7 @@ def checkConnection(cursor):
 def checkTape(args):
     cursor = connectDB(args.user, args.password, args.host, args.database);
     checkResult = {}
-    if checkConnection(cursor):     
+    if checkConnection(cursor):
         if args.emptyTapes:
             checkResult = checkEmptyTapes(cursor, args.warning, args.critical)
         if args.replaceTapes:
@@ -584,56 +584,52 @@ def checkTape(args):
         elif args.tapesInStorage:
             checkResult = checkTapesInStorage(cursor, args.warning, args.critical)
         elif args.expiredTapes:
-            checkResult = checkExpiredTapes(cursor, args.warning, args.critical)        
+            checkResult = checkExpiredTapes(cursor, args.warning, args.critical)
         elif args.willExpire:
             checkResult = checkWillExpiredTapes(cursor, args.time, args.warning, args.critical)
         printNagiosOutput(checkResult);
         cursor.close();
-        
+
 
 def checkJob(args):
     cursor = connectDB(args.user, args.password, args.host, args.database);
     checkResult = {}
-    if checkConnection(cursor):  
+    if checkConnection(cursor):
         if args.checkJob:
             kind = createBackupKindString(args.full, args.inc, args.diff)
-            checkResult = checkSingleJob(cursor, args.name, args.state,kind, args.time, args.warning, args.critical) 
+            checkResult = checkSingleJob(cursor, args.name, args.state,kind, args.time, args.warning, args.critical)
         elif args.checkJobs:
             kind = createBackupKindString(args.full, args.inc, args.diff)
-            checkResult = checkJobs(cursor, args.state, kind, args.time, args.warning, args.critical) 
+            checkResult = checkJobs(cursor, args.state, kind, args.time, args.warning, args.critical)
         elif args.runTimeJobs:
             checkResult = checkRunTimeJobs(cursor, args.name,args.state, args.time, args.warning, args.critical)
         printNagiosOutput(checkResult);
         cursor.close();
 
-       
+
 def checkStatus(args):
     cursor = connectDB(args.user, args.password, args.host, args.database);
     checkResult = {}
-    if checkConnection(cursor):  
+    if checkConnection(cursor):
         if args.emptyBackups:
             kind = createBackupKindString(args.full, args.inc, args.diff)
-            checkResult = checkEmptyBackups(cursor, args.time, kind, args.warning, args.critical)        
+            checkResult = checkEmptyBackups(cursor, args.time, kind, args.warning, args.critical)
         elif args.totalBackupsSize:
             kind = createBackupKindString(args.full, args.inc, args.diff)
-            checkResult = checkTotalBackupSize(cursor, args.time, kind, args.unit, args.warning, args.critical)  
+            checkResult = checkTotalBackupSize(cursor, args.time, kind, args.unit, args.warning, args.critical)
         elif args.oversizedBackups:
             kind = createBackupKindString(args.full, args.inc, args.diff)
-            checkResult = checkOversizedBackups(cursor, args.time, args.size, kind, args.unit, args.warning, args.critical)   
+            checkResult = checkOversizedBackups(cursor, args.time, args.size, kind, args.unit, args.warning, args.critical)
         elif args.failedBackups:
             kind = createBackupKindString(args.full, args.inc, args.diff)
-            checkResult = checkFailedBackups(cursor, args.time, args.warning, args.critical)   
+            checkResult = checkFailedBackups(cursor, args.time, args.warning, args.critical)
         printNagiosOutput(checkResult);
         cursor.close();
-              
-    
+
+
 if __name__ == '__main__':
     parser = argumentParser()
     args = parser.parse_args()
     # print parser.parse_args()
     args.func(args)
     # Get a cursor for the specific database connection
-    
-    
-
-
