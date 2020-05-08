@@ -121,7 +121,11 @@ def checkRecurringFailedBackups(courser, time, warning, critical):
     results = courser.fetchall()  # Returns a value
     result = len(results)
 
-    if result > 0:
+    if result == 0:
+        checkState["returnCode"] = 0
+        checkState["returnMessage"] = "OK - No backups failed in the last " + str(time) + " days"
+    else:
+        failed_jobs_not_fixed = ""
         # Check each failed jobname
         for failed in results:
             failed_jobname = failed[0]
@@ -137,17 +141,15 @@ def checkRecurringFailedBackups(courser, time, warning, critical):
             """
             courser.execute(query)
             fixresults = courser.fetchall()  # Returns a value
-            # if there is no newer successful job, fail immediately
-            if not len(fixresults) > 0:
-                checkState["returnCode"] = 2
-                checkState["returnMessage"] = "CRITICAL - " + str(result) + " Backups failed/canceled last " + str(time) + " days"
-                break
-            # if loop did not break, set return OK but warn user
+            # if there is no newer successful job
+            if len(fixresults) == 0:
+                failed_jobs_not_fixed += failed_jobname + "; "
+        if failed_jobs_not_fixed == "":
             checkState["returnCode"] = 0
             checkState["returnMessage"] = "OK - Some jobs failed, but new successful exists for the same jobs in the last " + str(time) + " days"
-    else:
-            checkState["returnCode"] = 0
-            checkState["returnMessage"] = "OK - No backups failed in the last " + str(time) + " days"
+        else:
+            checkState["returnCode"] = 2
+            checkState["returnMessage"] = "CRITICAL - " + str(result) + " Backups failed/canceled last " + str(time) + " days: " + failed_jobs_not_fixed
     checkState["performanceData"] = "Failed=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
     return checkState
 
