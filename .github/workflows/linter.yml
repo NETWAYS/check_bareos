@@ -1,0 +1,23 @@
+---
+name: Lint Code Base
+# https://github.com/github/super-linter/blob/master/README.md
+# https://help.github.com/en/articles/workflow-syntax-for-github-actions
+on:
+  push:
+    branches-ignore:
+      - 'master'
+jobs:
+  build:
+    name: Lint Code Base
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+      - name: Lint Code Base
+        uses: docker://github/super-linter:v2.2.0
+        env:
+          VALIDATE_PYTHON: false
+      - name: Lint Python
+        uses: docker://mvantellingen/python-lint:latest
+        with:
+          args: flake8 /github/workspace

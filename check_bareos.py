@@ -15,9 +15,9 @@
 # it under the terms of the GNU General Public License version 3.0
 #
 # Changelog:
-# 	- 1.0.1 remove 'error' tapes from expire check and correct the help description
-#	- 1.0.2 start to rework for chosing correct query for the database type (MySQL -vs - PostgreSQL)
-#	- 1.0.3 New option --recurringFailedBackups for identifing repeated issues.
+# - 1.0.1 remove 'error' tapes from expire check and correct the help description
+# - 1.0.2 start to rework for chosing correct query for the database type (MySQL -vs - PostgreSQL)
+# - 1.0.3 New option --recurringFailedBackups for identifing repeated issues.
 #
 #
 # Plugin check for icinga
@@ -26,7 +26,6 @@ import argparse
 import psycopg2
 import psycopg2.extras
 import sys
-import subprocess
 import MySQLdb
 
 # Variables
@@ -34,8 +33,9 @@ databaseName = 'bareos'
 # Used to differentiate between database specific queries
 databaseType = 'mysql'
 
+
 def createBackupKindString(full, inc, diff):
-    if full == False and inc == False and diff == False:
+    if full is False and inc is False and diff is False:
         return "'F','D','I'"
     kind = []
     if full:
@@ -47,26 +47,29 @@ def createBackupKindString(full, inc, diff):
 
     return ",".join(kind)
 
+
 def createFactor(unit):
-    options = {'EB' : 2 ** 60,
-               'PB' : 2 ** 50,
+    options = {'EB': 2 ** 60,
+               'PB': 2 ** 50,
                'TB': 2 ** 40,
                'GB': 2 ** 30,
                'MB': 10 ** 20}
     return options[unit]
 
+
 def getState(state):
-    options = {'T' : "Completed successfully",
-               'C' : "Created,not yet running",
+    options = {'T': "Completed successfully",
+               'C': "Created,not yet running",
                'R': "Running",
                'E': "Terminated with Errors",
                'f': "Fatal error",
                'A': "Canceled by user"}
     return options[state]
 
+
 def checkFailedBackups(courser, time, warning, critical):
     checkState = {}
-    if time == None:
+    if time is None:
         time = 7
     # MySQL needs other Queries than PostgreSQL
     if(databaseType == "psql"):
@@ -99,9 +102,10 @@ def checkFailedBackups(courser, time, warning, critical):
 
     return checkState
 
+
 def checkRecurringFailedBackups(courser, time, warning, critical):
     checkState = {}
-    if time == None:
+    if time is None:
         time = 7
     # MySQL needs other Queries than PostgreSQL
     if(databaseType == "psql"):
@@ -153,8 +157,9 @@ def checkRecurringFailedBackups(courser, time, warning, critical):
     checkState["performanceData"] = "Failed=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
     return checkState
 
+
 def checkBackupSize(courser, time, kind, factor):
-            if time != None:
+            if time is not None:
                 # MySQL needs other Queries than PostgreSQL
                 if(databaseType == "psql"):
                     query = """
@@ -182,6 +187,7 @@ def checkBackupSize(courser, time, kind, factor):
                 results = courser.fetchone()  # Returns a value
                 return results[0]
 
+
 def checkTotalBackupSize(cursor, time, kind, unit, warning, critical):
             checkState = {}
             result = checkBackupSize(cursor, time, kind, createFactor(unit))
@@ -206,9 +212,10 @@ def checkTotalBackupSize(cursor, time, kind, unit, warning, critical):
             checkState["performanceData"] = "Size=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
             return checkState
 
+
 def checkOversizedBackups(courser, time, size, kind, unit, warning, critical):
             checkState = {}
-            if time == None:
+            if time is None:
                 time = 7
             factor = createFactor(unit)
             # MySQL needs other Queries than PostgreSQL
@@ -241,9 +248,10 @@ def checkOversizedBackups(courser, time, size, kind, unit, warning, critical):
             checkState["performanceData"] = "OverSized=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
             return checkState
 
+
 def checkEmptyBackups(cursor, time, kind, warning, critical):
             checkState = {}
-            if time == None:
+            if time is None:
                 time = 7
             # MySQL needs other Queries than PostgreSQL
             if(databaseType == "psql"):
@@ -279,7 +287,7 @@ def checkEmptyBackups(cursor, time, kind, warning, critical):
 # Checks on Jobs
 def checkJobs(cursor, state, kind, time, warning, critical):
     checkState = {}
-    if time == None:
+    if time is None:
         time = 7
     # MySQL needs other Queries than PostgreSQL
     if(databaseType == "psql"):
@@ -312,9 +320,10 @@ def checkJobs(cursor, state, kind, time, warning, critical):
 
     return checkState
 
+
 def checkSingleJob(cursor, name, state, kind, time, warning, critical):
     checkState = {}
-    if time == None:
+    if time is None:
         time = 7
     # MySQL needs other Queries than PostgreSQL
     if(databaseType == "psql"):
@@ -347,9 +356,10 @@ def checkSingleJob(cursor, name, state, kind, time, warning, critical):
 
     return checkState
 
-def checkRunTimeJobs(cursor,name,state,time,warning,critical):
+
+def checkRunTimeJobs(cursor, name, state, time, warning, critical):
     checkState = {}
-    if time == None:
+    if time is None:
         time = 7
     # MySQL needs other Queries than PostgreSQL
     if(databaseType == "psql"):
@@ -410,6 +420,7 @@ def checkTapesInStorage(cursor, warning, critical):
     checkState["performanceData"] = "Tapes=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
     return checkState
 
+
 def checkExpiredTapes(cursor, warning, critical):
     checkState = {}
     query = """
@@ -459,6 +470,7 @@ def checkWillExpiredTapes(cursor, time, warning, critical):
 
     return checkState
 
+
 def checkReplaceTapes(cursor, mounts, warning, critical):
     checkState = {}
     query = """
@@ -483,8 +495,6 @@ def checkReplaceTapes(cursor, mounts, warning, critical):
     checkState["performanceData"] = "Replace=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
 
     return checkState
-
-
 
 
 def checkEmptyTapes(courser, warning, critical):
@@ -515,7 +525,6 @@ def checkEmptyTapes(courser, warning, critical):
         return checkState
 
 
-
 def connectDB(userName, pw, hostName, database):
     if(database == "postgresql" or database == "p" or database == "psql"):
         global databaseType
@@ -529,7 +538,7 @@ def connectDB(userName, pw, hostName, database):
             cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
             return cursor
-        except psycopg2.DatabaseError, e:
+        except psycopg2.DatabaseError as e:
             checkState = {}
             checkState["returnCode"] = 2
             checkState["returnMessage"] = "CRITICAL - " + str(e)[:-1]
@@ -540,24 +549,26 @@ def connectDB(userName, pw, hostName, database):
         try:
             conn = MySQLdb.connect(host=hostName, user=userName, passwd=pw, db=databaseName)
             return conn.cursor()
-        except MySQLdb.Error, e:
+        except MySQLdb.Error as e:
                         checkState = {}
                         checkState["returnCode"] = 2
                         checkState["returnMessage"] = "CRITICAL - " + str(e)[:-1]
                         checkState["performanceData"] = ";;;;"
                         printNagiosOutput(checkState)
 
+
 def printNagiosOutput(checkResult):
-    if checkResult != None:
-        print checkResult["returnMessage"] + "|" + checkResult["performanceData"]
+    if checkResult is not None:
+        print(checkResult["returnMessage"] + "|" + checkResult["performanceData"])
         sys.exit(checkResult["returnCode"])
     else:
-        print "Critical - Error in Script"
+        print("Critical - Error in Script")
         sys.exit(2)
+
 
 def argumentParser():
     parser = argparse.ArgumentParser(description='Check status of the bareos backups')
-    group = parser.add_argument_group();
+    group = parser.add_argument_group()
     group.add_argument('-u', '--user', dest='user', action='store', required=True, help='user name for the database connections')
     group.add_argument('-p', '--password', dest='password', action='store', help='password for the database connections', default="")
     group.add_argument('-H', '--Host', dest='host', action='store', help='database host', default="127.0.0.1")
@@ -566,7 +577,7 @@ def argumentParser():
 
     subParser = parser.add_subparsers()
 
-    jobParser = subParser.add_parser('job', help='Specific checks on a job');
+    jobParser = subParser.add_parser('job', help='Specific checks on a job')
     jobGroup = jobParser.add_mutually_exclusive_group(required=True)
     jobParser.set_defaults(func=checkJob)
     jobGroup.add_argument('-js', '--checkJobs', dest='checkJobs', action='store_true', help='Check how many jobs are in a specific state [default=queued]')
@@ -577,13 +588,13 @@ def argumentParser():
     jobParser.add_argument('-u', '--unit', dest='unit', choices=['GB', 'TB', 'PB'], default='TB', help='display unit')
     jobParser.add_argument('-w', '--warning', dest='warning', action='store', help='Warning value', default=5)
     jobParser.add_argument('-c', '--critical', dest='critical', action='store', help='Critical value', default=10)
-    jobParser.add_argument('-st', '--state', dest='state', choices=['T', 'C', 'R', 'E', 'f','A'], default='C', help='T=Completed, C=Queued, R=Running, E=Terminated with Errors, f=Fatal error, A=Canceld by user [default=C]')
+    jobParser.add_argument('-st', '--state', dest='state', choices=['T', 'C', 'R', 'E', 'f', 'A'], default='C', help='T=Completed, C=Queued, R=Running, E=Terminated with Errors, f=Fatal error, A=Canceld by user [default=C]')
     jobParser.add_argument('-f', '--full', dest='full', action='store_true', help='Backup kind full')
     jobParser.add_argument('-i', '--inc', dest='inc', action='store_true', help='Backup kind inc')
     jobParser.add_argument('-d', '--diff', dest='diff', action='store_true', help='Backup kind diff')
 
-    tapeParser = subParser.add_parser('tape', help='Specific checks on a tapes');
-    tapeGroup = tapeParser.add_mutually_exclusive_group(required=True);
+    tapeParser = subParser.add_parser('tape', help='Specific checks on a tapes')
+    tapeGroup = tapeParser.add_mutually_exclusive_group(required=True)
     tapeParser.set_defaults(func=checkTape)
     tapeGroup.add_argument('-e', '--emptyTapes', dest='emptyTapes', action='store_true', help='Count empty tapes in the storage (Status Purged/Expired)')
     tapeGroup.add_argument('-ts', '--tapesInStorage', dest='tapesInStorage', action='store_true', help='Count how much tapes are in the storage')
@@ -595,9 +606,8 @@ def argumentParser():
     tapeParser.add_argument('-m', '--mounts', dest='mounts', action='store', help='Amout of allowed mounts for a tape [used for replace tapes]', default=200)
     tapeParser.add_argument('-t', '--time', dest='time', action='store', help='Time in days (default=7 days)', default=7)
 
-
-    statusParser = subParser.add_parser('status', help='Specific status informations');
-    statusGroup = statusParser.add_mutually_exclusive_group(required=True);
+    statusParser = subParser.add_parser('status', help='Specific status informations')
+    statusGroup = statusParser.add_mutually_exclusive_group(required=True)
     statusParser.set_defaults(func=checkStatus)
     statusGroup.add_argument('-b', '--totalBackupsSize', dest='totalBackupsSize', action='store_true', help='the size of all backups in the database [use time and kind for mor restrictions]')
     statusGroup.add_argument('-e', '--emptyBackups', dest='emptyBackups', action='store_true', help='Check if a successful backup have 0 bytes [only wise for full backups]')
@@ -613,12 +623,12 @@ def argumentParser():
     statusParser.add_argument('-s', '--size', dest='size', action='store', help='Border value for oversized backups [default=2]', default=2)
     statusParser.add_argument('-u', '--unit', dest='unit', choices=['MB', 'GB', 'TB', 'PB', 'EB'], default='TB', help='display unit [default=TB]')
 
-
     return parser
+
 
 def checkConnection(cursor):
     checkResult = {}
-    if cursor == None:
+    if cursor is None:
         checkResult["returnCode"] = 2
         checkResult["returnMessage"] = "CRITICAL - No DB connection"
         printNagiosOutput(checkResult)
@@ -626,8 +636,9 @@ def checkConnection(cursor):
     else:
         return True
 
+
 def checkTape(args):
-    cursor = connectDB(args.user, args.password, args.host, args.database);
+    cursor = connectDB(args.user, args.password, args.host, args.database)
     checkResult = {}
     if checkConnection(cursor):
         if args.emptyTapes:
@@ -640,28 +651,28 @@ def checkTape(args):
             checkResult = checkExpiredTapes(cursor, args.warning, args.critical)
         elif args.willExpire:
             checkResult = checkWillExpiredTapes(cursor, args.time, args.warning, args.critical)
-        printNagiosOutput(checkResult);
-        cursor.close();
+        printNagiosOutput(checkResult)
+        cursor.close()
 
 
 def checkJob(args):
-    cursor = connectDB(args.user, args.password, args.host, args.database);
+    cursor = connectDB(args.user, args.password, args.host, args.database)
     checkResult = {}
     if checkConnection(cursor):
         if args.checkJob:
             kind = createBackupKindString(args.full, args.inc, args.diff)
-            checkResult = checkSingleJob(cursor, args.name, args.state,kind, args.time, args.warning, args.critical)
+            checkResult = checkSingleJob(cursor, args.name, args.state, kind, args.time, args.warning, args.critical)
         elif args.checkJobs:
             kind = createBackupKindString(args.full, args.inc, args.diff)
             checkResult = checkJobs(cursor, args.state, kind, args.time, args.warning, args.critical)
         elif args.runTimeJobs:
-            checkResult = checkRunTimeJobs(cursor, args.name,args.state, args.time, args.warning, args.critical)
-        printNagiosOutput(checkResult);
-        cursor.close();
+            checkResult = checkRunTimeJobs(cursor, args.name, args.state, args.time, args.warning, args.critical)
+        printNagiosOutput(checkResult)
+        cursor.close()
 
 
 def checkStatus(args):
-    cursor = connectDB(args.user, args.password, args.host, args.database);
+    cursor = connectDB(args.user, args.password, args.host, args.database)
     checkResult = {}
     if checkConnection(cursor):
         if args.emptyBackups:
@@ -679,8 +690,8 @@ def checkStatus(args):
         elif args.recurringFailedBackups:
             kind = createBackupKindString(args.full, args.inc, args.diff)
             checkResult = checkRecurringFailedBackups(cursor, args.time, args.warning, args.critical)
-        printNagiosOutput(checkResult);
-        cursor.close();
+        printNagiosOutput(checkResult)
+        cursor.close()
 
 
 if __name__ == '__main__':
