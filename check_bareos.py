@@ -136,10 +136,11 @@ def checkRecurringFailedBackups(courser, time, warning, critical):
             failed_level = failed[1]
             failed_starttime = failed[2]
             # Check if newer successful job exists for the failed jobname
+            # status = Finished, Running, Queued
             query = """
             SELECT Job.Name,Level,starttime,JobStatus
             FROM Job
-            Where Job.Name = '""" + str(failed_jobname) + """' and JobStatus in ('T')
+            Where Job.Name = '""" + str(failed_jobname) + """' and JobStatus in ('T','R','A')
             and Job.starttime > '""" + str(failed_starttime) + """'
             and Job.Level = '""" + str(failed_level) + """';
             """
@@ -150,7 +151,7 @@ def checkRecurringFailedBackups(courser, time, warning, critical):
                 failed_jobs_not_fixed += failed_jobname + "; "
         if failed_jobs_not_fixed == "":
             checkState["returnCode"] = 0
-            checkState["returnMessage"] = "OK - Some jobs failed, but new successful exists for the same jobs in the last " + str(time) + " days"
+            checkState["returnMessage"] = "OK - Some jobs failed, but new job exists for the same jobs in the last " + str(time) + " days"
         else:
             checkState["returnCode"] = 2
             checkState["returnMessage"] = "CRITICAL - " + str(result) + " Backups failed/canceled last " + str(time) + " days: " + failed_jobs_not_fixed
