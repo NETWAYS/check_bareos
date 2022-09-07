@@ -471,7 +471,7 @@ def connectDB(userName, pw, hostName, database, port):
         databaseType = 'psql'
         try:
             # Define our connection string
-            connString = "host='" + hostName + "' port=" + port + " dbname='" + databaseName + "' user='" + userName + "' password='" + pw + "'"
+            connString = "host='" + hostName + "' port=" + str(port) + " dbname='" + databaseName + "' user='" + userName + "' password='" + pw + "'"
             # get a connection, if a connect cannot be made an exception will be raised here
             conn = psycopg2.connect(connString)
             # conn.cursor will return a cursor object, you can use this cursor to perform queries
