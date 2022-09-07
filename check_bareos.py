@@ -497,7 +497,7 @@ def connectDB(userName, pw, hostName, database, port):
 
 def printNagiosOutput(checkResult):
     if checkResult != None:
-        print((checkResult["returnMessage"] + "|" + checkResult["performanceData"]))
+        print((checkResult["returnMessage"] + "|" + checkResult.get("performanceData", ";;;;")))
         sys.exit(checkResult["returnCode"])
     else:
         print("Critical - Error in Script")
