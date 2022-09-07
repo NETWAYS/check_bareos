@@ -1,4 +1,5 @@
 # check_bareos
+
 Icinga Monitoring Plugin to check Bareos Backup Director databases
 
 Main Git Repository: https://github.com/widhalmt/check_bareos
@@ -8,17 +9,21 @@ This project is mainly aimed at fixing some bugs.
 
 If you want to add features contribute in the git project or sent an email to the author or git repository owner.
 
+## Setup
 
-## Check Examples: 
+Requires Python 3 to be installed.
+
+Requires the Python `requirements.txt` to be installed.
+
+## Examples
 
 Note: use the postgresql database bareos and login without password
-
 
 #### Check if a full backup has 0 Bytes(is Empty) and trigger warning it is at least 1 and trigger ciritcal if more than 5 are empty 
 ```check_bareos.py -u bareos -d p status -e -f -w 1 -c 5```
 
 
-##### Check if a diff/inc backup is larger than 2 TB (default value) and trigger warning it is at least 1 and trigger ciritcal if more than 5 are empty 
+##### Check if a diff/inc backup is larger than 2 TB (default value) and trigger warning it is at least 1 and trigger ciritcal if more than 5 are empty
 ```check_bareos.py -u bareos -d p status -o -d -i -w 1 -c 5```
 
 
@@ -56,6 +61,3 @@ Note: use the postgresql database bareos and login without password
 
 #### Check how much tapes will expire in the next 14 days
 ```check_bareos.py -u bareos -d p tape -wex -t 14 -w 10 -c 5```
-
- 
-
