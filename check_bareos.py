@@ -9,8 +9,6 @@
 # Modifications : Thomas Widhalm, NETways GmbH
 # E-Mail: widhalmt@widhalm.or.at
 #
-# Version: 1.0.3
-#
 # This program is free software; you can redistribute it or modify
 # it under the terms of the GNU General Public License version 3.0
 #
@@ -29,10 +27,15 @@ import sys
 import subprocess
 import MySQLdb
 
+
+# Constants
+VERSION = '1.0.3'
+
 # Variables
 databaseName = 'bareos'
 # Used to differentiate between database specific queries
 databaseType = 'mysql'
+
 
 def createBackupKindString(full, inc, diff):
     if full == False and inc == False and diff == False:
@@ -510,7 +513,7 @@ def argumentParser():
     group.add_argument('-p', '--password', dest='password', action='store', help='password for the database connections', default="")
     group.add_argument('-H', '--Host', dest='host', action='store', help='database host', default="127.0.0.1")
     group.add_argument('-P', '--port', dest='port', action='store', help='database port', default=3306, type=int)
-    group.add_argument('-v', '--version', action='version', version='%(prog)s 1.0.0')
+    group.add_argument('-v', '--version', action='version', version=f'%(prog)s {VERSION}')
     parser.add_argument('-d', '--database', dest='database', choices=['mysql', 'm', 'postgresql', 'p', 'psql'], default='mysql', help='the database kind for the database connection (m=mysql, p=psql) (Default=Mysql)')
 
     subParser = parser.add_subparsers()
