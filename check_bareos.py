@@ -483,8 +483,8 @@ def connectDB(userName, pw, hostName, database, port):
             return cursor
         except psycopg2.DatabaseError as e:
             checkState = {}
-            checkState["returnCode"] = 2
-            checkState["returnMessage"] = "CRITICAL - " + str(e)[:-1]
+            checkState["returnCode"] = 3
+            checkState["returnMessage"] = "UNKNOWN - " + str(e)[:-1]
             checkState["performanceData"] = ";;;;"
             printNagiosOutput(checkState)
 
@@ -493,8 +493,8 @@ def connectDB(userName, pw, hostName, database, port):
             conn = MySQLdb.connect(host=hostName, user=userName, passwd=pw, db=databaseName, port=port)
         except MySQLdb.Error as e:
                         checkState = {}
-                        checkState["returnCode"] = 2
-                        checkState["returnMessage"] = "CRITICAL - " + str(e)[:-1]
+                        checkState["returnCode"] = 3
+                        checkState["returnMessage"] = "UNKNOWN - " + str(e)[:-1]
                         checkState["performanceData"] = ";;;;"
                         printNagiosOutput(checkState)
 
@@ -503,8 +503,8 @@ def printNagiosOutput(checkResult):
         print((checkResult["returnMessage"] + "|" + checkResult.get("performanceData", ";;;;")))
         sys.exit(checkResult["returnCode"])
     else:
-        print("Critical - Error in Script")
-        sys.exit(2)
+        print("UNKNOWN - Error in Script")
+        sys.exit(3)
 
 def argumentParser():
     parser = argparse.ArgumentParser(description='Check status of the bareos backups')
