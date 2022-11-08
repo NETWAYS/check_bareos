@@ -16,6 +16,9 @@
 # 	- 1.0.1 remove 'error' tapes from expire check and correct the help description
 #	- 1.0.2 start to rework for chosing correct query for the database type (MySQL -vs - PostgreSQL)
 #	- 1.0.3 add port parameter for MySQL and PostgreSQL databases
+#	- 1.1.0 add python3 compatibility
+#		split import to be able to not install unnecessary dependencies
+#		Fixes issues with mysql connection
 #
 # Plugin check for icinga
 # ---------------------------------------------------- #
@@ -25,7 +28,7 @@ import subprocess
 
 
 # Constants
-VERSION = '1.0.3'
+VERSION = '1.1.0'
 
 # Variables
 databaseName = 'bareos'
