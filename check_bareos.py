@@ -490,6 +490,7 @@ def connectDB(userName, pw, hostName, database, port):
         try:
             import MySQLdb
             conn = MySQLdb.connect(host=hostName, user=userName, password=pw, database=databaseName, port=port)
+            return conn.cursor()
         except MySQLdb.Error as e:
                         checkState = {}
                         checkState["returnCode"] = 3
