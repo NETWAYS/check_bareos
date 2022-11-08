@@ -17,15 +17,11 @@
 #	- 1.0.2 start to rework for chosing correct query for the database type (MySQL -vs - PostgreSQL)
 #	- 1.0.3 add port parameter for MySQL and PostgreSQL databases
 #
-#
 # Plugin check for icinga
 # ---------------------------------------------------- #
 import argparse
-import psycopg2
-import psycopg2.extras
 import sys
 import subprocess
-import MySQLdb
 
 
 # Constants
@@ -473,6 +469,8 @@ def connectDB(userName, pw, hostName, database, port):
         global databaseType
         databaseType = 'psql'
         try:
+            import psycopg2
+            import psycopg2.extras
             # Define our connection string
             connString = "host='" + hostName + "' port=" + str(port) + " dbname='" + databaseName + "' user='" + userName + "' password='" + pw + "'"
             # get a connection, if a connect cannot be made an exception will be raised here
@@ -490,7 +488,8 @@ def connectDB(userName, pw, hostName, database, port):
 
     if(database == "mysql" or database == "m"):
         try:
-            conn = MySQLdb.connect(host=hostName, user=userName, passwd=pw, db=databaseName, port=port)
+            import MySQLdb
+            conn = MySQLdb.connect(host=hostName, user=userName, password=pw, database=databaseName, port=port)
         except MySQLdb.Error as e:
                         checkState = {}
                         checkState["returnCode"] = 3
