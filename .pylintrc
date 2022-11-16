@@ -5,6 +5,7 @@ good-names=m,p,ok
 disable=fixme,
         consider-using-f-string,
         import-outside-toplevel,
+        import-error,
         inconsistent-return-statements,
         invalid-name,
         line-too-long,
