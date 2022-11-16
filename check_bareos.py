@@ -120,15 +120,16 @@ def checkBackupSize(courser, time, kind, factor):
         courser.execute(query)
         results = courser.fetchone()  # Returns a value
         return results[0]
-    else:
-        query = """
-        SELECT ROUND(SUM(JobBytes/""" + str(float(factor)) + """),3)
-        FROM Job
-        Where Level in (""" + kind + """);
-        """
-        courser.execute(query)
-        results = courser.fetchone()  # Returns a value
-        return results[0]
+
+    query = """
+    SELECT ROUND(SUM(JobBytes/""" + str(float(factor)) + """),3)
+    FROM Job
+    Where Level in (""" + kind + """);
+    """
+    courser.execute(query)
+    results = courser.fetchone()  # Returns a value
+
+    return results[0]
 
 def checkTotalBackupSize(cursor, time, kind, unit, warning, critical):
     checkState = {}
@@ -303,7 +304,7 @@ def checkSingleJob(cursor, name, state, kind, time, warning, critical):
 
     return checkState
 
-def checkRunTimeJobs(cursor,name,state,time,warning,critical):
+def checkRunTimeJobs(cursor,state,time,warning,critical):
     checkState = {}
     if time is None:
         time = 7
@@ -476,10 +477,9 @@ def checkEmptyTapes(courser, warning, critical):
     return checkState
 
 
-
 def connectDB(userName, pw, hostName, database, port):
-    if(database == "postgresql" or database == "p" or database == "psql"):
-        global databaseType
+    if database in ["postgresql", "p", "psql"]:
+        global databaseType # pylint: disable=global-statement
         databaseType = 'psql'
         try:
             import psycopg2
@@ -499,7 +499,7 @@ def connectDB(userName, pw, hostName, database, port):
             checkState["performanceData"] = ";;;;"
             printNagiosOutput(checkState)
 
-    if(database == "mysql" or database == "m"):
+    if database in ["mysql", "m"]:
         try:
             import MySQLdb
             conn = MySQLdb.connect(host=hostName, user=userName, password=pw, database=databaseName, port=port)
@@ -587,8 +587,8 @@ def checkConnection(cursor):
         checkResult["returnMessage"] = "CRITICAL - No DB connection"
         printNagiosOutput(checkResult)
         return False
-    else:
-        return True
+
+    return True
 
 def checkTape(args):
     cursor = connectDB(args.user, args.password, args.host, args.database, args.port)
@@ -619,7 +619,7 @@ def checkJob(args):
             kind = createBackupKindString(args.full, args.inc, args.diff)
             checkResult = checkJobs(cursor, args.state, kind, args.time, args.warning, args.critical)
         elif args.runTimeJobs:
-            checkResult = checkRunTimeJobs(cursor, args.name, args.state, args.time, args.warning, args.critical)
+            checkResult = checkRunTimeJobs(cursor, args.state, args.time, args.warning, args.critical)
         printNagiosOutput(checkResult)
         cursor.close()
 
