@@ -36,7 +36,7 @@ databaseType = 'mysql'
 
 
 def createBackupKindString(full, inc, diff):
-    if full == False and inc == False and diff == False:
+    if full is False and inc is False and diff is False:
         return "'F','D','I'"
     kind = []
     if full:
@@ -67,7 +67,7 @@ def getState(state):
 
 def checkFailedBackups(courser, time, warning, critical):
     checkState = {}
-    if time == None:
+    if time is None:
         time = 7
     # MySQL needs other Queries than PostgreSQL
     if databaseType == "psql":
@@ -101,7 +101,7 @@ def checkFailedBackups(courser, time, warning, critical):
     return checkState
 
 def checkBackupSize(courser, time, kind, factor):
-            if time != None:
+            if time is not None:
                 # MySQL needs other Queries than PostgreSQL
                 if databaseType == "psql":
                     query = """
@@ -155,7 +155,7 @@ def checkTotalBackupSize(cursor, time, kind, unit, warning, critical):
 
 def checkOversizedBackups(courser, time, size, kind, unit, warning, critical):
             checkState = {}
-            if time == None:
+            if time is None:
                 time = 7
             factor = createFactor(unit)
             # MySQL needs other Queries than PostgreSQL
@@ -190,7 +190,7 @@ def checkOversizedBackups(courser, time, size, kind, unit, warning, critical):
 
 def checkEmptyBackups(cursor, time, kind, warning, critical):
             checkState = {}
-            if time == None:
+            if time is None:
                 time = 7
             # MySQL needs other Queries than PostgreSQL
             if databaseType == "psql":
@@ -226,7 +226,7 @@ def checkEmptyBackups(cursor, time, kind, warning, critical):
 # Checks on Jobs
 def checkJobs(cursor, state, kind, time, warning, critical):
     checkState = {}
-    if time == None:
+    if time is None:
         time = 7
     # MySQL needs other Queries than PostgreSQL
     if databaseType == "psql":
@@ -261,7 +261,7 @@ def checkJobs(cursor, state, kind, time, warning, critical):
 
 def checkSingleJob(cursor, name, state, kind, time, warning, critical):
     checkState = {}
-    if time == None:
+    if time is None:
         time = 7
     # MySQL needs other Queries than PostgreSQL
     if databaseType == "psql":
@@ -296,7 +296,7 @@ def checkSingleJob(cursor, name, state, kind, time, warning, critical):
 
 def checkRunTimeJobs(cursor,name,state,time,warning,critical):
     checkState = {}
-    if time == None:
+    if time is None:
         time = 7
     # MySQL needs other Queries than PostgreSQL
     if databaseType == "psql":
@@ -498,7 +498,7 @@ def connectDB(userName, pw, hostName, database, port):
                         printNagiosOutput(checkState)
 
 def printNagiosOutput(checkResult):
-    if checkResult != None:
+    if checkResult is not None:
         print((checkResult["returnMessage"] + "|" + checkResult.get("performanceData", ";;;;")))
         sys.exit(checkResult["returnCode"])
     else:
@@ -568,7 +568,7 @@ def argumentParser():
 
 def checkConnection(cursor):
     checkResult = {}
-    if cursor == None:
+    if cursor is None:
         checkResult["returnCode"] = 2
         checkResult["returnMessage"] = "CRITICAL - No DB connection"
         printNagiosOutput(checkResult)
