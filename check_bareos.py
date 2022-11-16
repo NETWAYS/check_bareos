@@ -24,7 +24,6 @@
 # ---------------------------------------------------- #
 import argparse
 import sys
-import subprocess
 
 
 # Constants
@@ -71,7 +70,7 @@ def checkFailedBackups(courser, time, warning, critical):
     if time == None:
         time = 7
     # MySQL needs other Queries than PostgreSQL
-    if(databaseType == "psql"):
+    if databaseType == "psql":
         query = """
         SELECT Job.Name,Level,starttime, JobStatus
         FROM Job
@@ -101,13 +100,10 @@ def checkFailedBackups(courser, time, warning, critical):
 
     return checkState
 
-
-    return checkState
-
 def checkBackupSize(courser, time, kind, factor):
             if time != None:
                 # MySQL needs other Queries than PostgreSQL
-                if(databaseType == "psql"):
+                if databaseType == "psql":
                     query = """
                     SELECT ROUND(SUM(JobBytes/""" + str(float(factor)) + """),3)
                     FROM Job
@@ -163,7 +159,7 @@ def checkOversizedBackups(courser, time, size, kind, unit, warning, critical):
                 time = 7
             factor = createFactor(unit)
             # MySQL needs other Queries than PostgreSQL
-            if(databaseType == "psql"):
+            if databaseType == "psql":
                 query = """
                 SELECT Job.Name,Level,starttime, JobBytes/""" + str(float(factor)) + """
                 FROM Job
@@ -197,7 +193,7 @@ def checkEmptyBackups(cursor, time, kind, warning, critical):
             if time == None:
                 time = 7
             # MySQL needs other Queries than PostgreSQL
-            if(databaseType == "psql"):
+            if databaseType == "psql":
                 query = """
                 SELECT Job.Name,Level,starttime
                 FROM Job
@@ -233,7 +229,7 @@ def checkJobs(cursor, state, kind, time, warning, critical):
     if time == None:
         time = 7
     # MySQL needs other Queries than PostgreSQL
-    if(databaseType == "psql"):
+    if databaseType == "psql":
         query = """
         Select count(Job.Name)
         From Job
@@ -268,7 +264,7 @@ def checkSingleJob(cursor, name, state, kind, time, warning, critical):
     if time == None:
         time = 7
     # MySQL needs other Queries than PostgreSQL
-    if(databaseType == "psql"):
+    if databaseType == "psql":
         query = """
         Select Job.Name,Job.JobStatus, Job.Starttime
         FROm Job
@@ -303,7 +299,7 @@ def checkRunTimeJobs(cursor,name,state,time,warning,critical):
     if time == None:
         time = 7
     # MySQL needs other Queries than PostgreSQL
-    if(databaseType == "psql"):
+    if databaseType == "psql":
         query = """
         Select Count(Job.Name)
         FROm Job
@@ -511,7 +507,7 @@ def printNagiosOutput(checkResult):
 
 def argumentParser():
     parser = argparse.ArgumentParser(description='Check status of the bareos backups')
-    group = parser.add_argument_group();
+    group = parser.add_argument_group()
     group.add_argument('-u', '--user', dest='user', action='store', required=True, help='user name for the database connections')
     group.add_argument('-p', '--password', dest='password', action='store', help='password for the database connections', default="")
     group.add_argument('-H', '--Host', dest='host', action='store', help='database host', default="127.0.0.1")
@@ -521,7 +517,7 @@ def argumentParser():
 
     subParser = parser.add_subparsers()
 
-    jobParser = subParser.add_parser('job', help='Specific checks on a job');
+    jobParser = subParser.add_parser('job', help='Specific checks on a job')
     jobGroup = jobParser.add_mutually_exclusive_group(required=True)
     jobParser.set_defaults(func=checkJob)
     jobGroup.add_argument('-js', '--checkJobs', dest='checkJobs', action='store_true', help='Check how many jobs are in a specific state [default=queued]')
@@ -537,8 +533,8 @@ def argumentParser():
     jobParser.add_argument('-i', '--inc', dest='inc', action='store_true', help='Backup kind inc')
     jobParser.add_argument('-d', '--diff', dest='diff', action='store_true', help='Backup kind diff')
 
-    tapeParser = subParser.add_parser('tape', help='Specific checks on a tapes');
-    tapeGroup = tapeParser.add_mutually_exclusive_group(required=True);
+    tapeParser = subParser.add_parser('tape', help='Specific checks on a tapes')
+    tapeGroup = tapeParser.add_mutually_exclusive_group(required=True)
     tapeParser.set_defaults(func=checkTape)
     tapeGroup.add_argument('-e', '--emptyTapes', dest='emptyTapes', action='store_true', help='Count empty tapes in the storage (Status Purged/Expired)')
     tapeGroup.add_argument('-ts', '--tapesInStorage', dest='tapesInStorage', action='store_true', help='Count how much tapes are in the storage')
@@ -551,8 +547,8 @@ def argumentParser():
     tapeParser.add_argument('-t', '--time', dest='time', action='store', help='Time in days (default=7 days)', default=7)
 
 
-    statusParser = subParser.add_parser('status', help='Specific status informations');
-    statusGroup = statusParser.add_mutually_exclusive_group(required=True);
+    statusParser = subParser.add_parser('status', help='Specific status informations')
+    statusGroup = statusParser.add_mutually_exclusive_group(required=True)
     statusParser.set_defaults(func=checkStatus)
     statusGroup.add_argument('-b', '--totalBackupsSize', dest='totalBackupsSize', action='store_true', help='the size of all backups in the database [use time and kind for mor restrictions]')
     statusGroup.add_argument('-e', '--emptyBackups', dest='emptyBackups', action='store_true', help='Check if a successful backup have 0 bytes [only wise for full backups]')
@@ -581,7 +577,7 @@ def checkConnection(cursor):
         return True
 
 def checkTape(args):
-    cursor = connectDB(args.user, args.password, args.host, args.database, args.port);
+    cursor = connectDB(args.user, args.password, args.host, args.database, args.port)
     checkResult = {}
     if checkConnection(cursor):
         if args.emptyTapes:
@@ -594,12 +590,12 @@ def checkTape(args):
             checkResult = checkExpiredTapes(cursor, args.warning, args.critical)
         elif args.willExpire:
             checkResult = checkWillExpiredTapes(cursor, args.time, args.warning, args.critical)
-        printNagiosOutput(checkResult);
-        cursor.close();
+        printNagiosOutput(checkResult)
+        cursor.close()
 
 
 def checkJob(args):
-    cursor = connectDB(args.user, args.password, args.host, args.database, args.port);
+    cursor = connectDB(args.user, args.password, args.host, args.database, args.port)
     checkResult = {}
     if checkConnection(cursor):
         if args.checkJob:
@@ -609,13 +605,13 @@ def checkJob(args):
             kind = createBackupKindString(args.full, args.inc, args.diff)
             checkResult = checkJobs(cursor, args.state, kind, args.time, args.warning, args.critical)
         elif args.runTimeJobs:
-            checkResult = checkRunTimeJobs(cursor, args.name,args.state, args.time, args.warning, args.critical)
-        printNagiosOutput(checkResult);
-        cursor.close();
+            checkResult = checkRunTimeJobs(cursor, args.name, args.state, args.time, args.warning, args.critical)
+        printNagiosOutput(checkResult)
+        cursor.close()
 
 
 def checkStatus(args):
-    cursor = connectDB(args.user, args.password, args.host, args.database, args.port);
+    cursor = connectDB(args.user, args.password, args.host, args.database, args.port)
     checkResult = {}
     if checkConnection(cursor):
         if args.emptyBackups:
@@ -630,8 +626,8 @@ def checkStatus(args):
         elif args.failedBackups:
             kind = createBackupKindString(args.full, args.inc, args.diff)
             checkResult = checkFailedBackups(cursor, args.time, args.warning, args.critical)
-        printNagiosOutput(checkResult);
-        cursor.close();
+        printNagiosOutput(checkResult)
+        cursor.close()
 
 
 if __name__ == '__main__':
