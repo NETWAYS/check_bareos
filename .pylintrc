@@ -1,0 +1,18 @@
+# pylint config
+[FORMAT]
+good-names=m,p,ok
+[MESSAGES CONTROL]
+disable=fixme,
+        consider-using-f-string,
+        import-outside-toplevel,
+        inconsistent-return-statements,
+        invalid-name,
+        line-too-long,
+        missing-class-docstring,
+        missing-function-docstring,
+        missing-module-docstring,
+        redefined-outer-name,
+        too-many-arguments,
+        too-many-branches,
+        too-many-locals,
+        too-many-statements
