@@ -582,6 +582,6 @@ if __name__ == '__main__':
     except SystemExit:
         # Re-throw the exception
         raise sys.exc_info()[1].with_traceback(sys.exc_info()[2]) # pylint: disable=raise-missing-from
-    except:
+    except: # pylint: disable=bare-except
         print("UNKNOWN - Error: %s" % (str(sys.exc_info()[1])))
         sys.exit(3)
