@@ -21,7 +21,7 @@ from check_bareos import checkOversizedBackups
 class CLITesting(unittest.TestCase):
 
     def test_commandline(self):
-        actual = commandline(['-H', 'localhost', '-u', 'bareos'])
+        actual = commandline(['-H', 'localhost', '-U', 'bareos'])
         self.assertEqual(actual.host, 'localhost')
         self.assertEqual(actual.user, 'bareos')
 

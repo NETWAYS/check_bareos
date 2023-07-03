@@ -454,7 +454,7 @@ def printNagiosOutput(checkResult):
 def commandline(args):
     parser = argparse.ArgumentParser(description='Check status of the bareos backups')
     group = parser.add_argument_group()
-    group.add_argument('-u', '--user', dest='user', action='store', required=True, help='user name for the database connections')
+    group.add_argument('-U', '--user', dest='user', action='store', required=True, help='user name for the database connections')
     group.add_argument('-p', '--password', dest='password', action='store', help='password for the database connections', default="")
     group.add_argument('-H', '--Host', dest='host', action='store', help='database host', default="127.0.0.1")
     group.add_argument('-P', '--port', dest='port', action='store', help='database port', default=5432, type=int)
