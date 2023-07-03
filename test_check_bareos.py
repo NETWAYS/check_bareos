@@ -16,6 +16,7 @@ from check_bareos import checkFailedBackups
 from check_bareos import checkBackupSize
 from check_bareos import checkTotalBackupSize
 from check_bareos import checkOversizedBackups
+from check_bareos import checkSingleJob
 
 
 class CLITesting(unittest.TestCase):
@@ -96,4 +97,23 @@ class SQLTesting(unittest.TestCase):
         c.fetchall.return_value = [1,2,3]
         actual = checkOversizedBackups(c, 1, 100, "'F','I','D'", "PB", 1, 2)
         expected = {'performanceData': 'OverSized=3;1;2;;', 'returnCode': 2, 'returnMessage': "CRITICAL - 3 'F','I','D' Backups larger than 100 PB in the last 1 days"}
+        self.assertEqual(actual, expected)
+
+
+    def test_checkSingleJob(self):
+
+        c = mock.MagicMock()
+        c.fetchall.return_value = []
+
+        actual = checkSingleJob(c, "Jobby", "T", "'F','I','D'", 1, 1, 2)
+
+        expected = {'performanceData': 'Completed successfully=0;1;2;;', 'returnCode': 0, 'returnMessage': 'OK - 0 Jobs are in the state: Completed successfully'}
+
+
+        self.assertEqual(actual, expected)
+
+        c.execute.assert_called_with("\n    SELECT Job.Name,Job.JobStatus, Job.Starttime\n    FROM Job\n    WHERE Job.Name like '%Jobby%' AND Job.JobStatus like 'T' AND (starttime > (now()::date-1 * '1 day'::INTERVAL) OR starttime IS NULL) AND Job.Level in ('F','I','D');\n    ")
+
+        actual = checkSingleJob(c, None, "T", "'F','I','D'", 1, 1, 2)
+        expected = {'returnCode': 3, 'returnMessage': 'UNKNOWN - Job Name missing'}
         self.assertEqual(actual, expected)

@@ -232,6 +232,12 @@ def checkJobs(cursor, state, kind, time, warning, critical):
 def checkSingleJob(cursor, name, state, kind, time, warning, critical):
     checkState = {}
 
+    # Return on empty name
+    if not name:
+        checkState["returnCode"] = 3
+        checkState["returnMessage"] = "UNKNOWN - Job Name missing"
+        return checkState
+
     if time is None:
         time = 7
 
