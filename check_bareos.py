@@ -6,33 +6,21 @@
 # E-Mail: Philipp.Posovszky@dlr.de
 # Date : 22/04/2015
 #
-# Modifications : Thomas Widhalm, NETways GmbH
+# Modifications : Thomas Widhalm, NETWAYS GmbH
 # E-Mail: widhalmt@widhalm.or.at
 #
 # This program is free software; you can redistribute it or modify
 # it under the terms of the GNU General Public License version 3.0
-#
-# Changelog:
-# 	- 1.0.1 remove 'error' tapes from expire check and correct the help description
-#	- 1.0.2 start to rework for chosing correct query for the database type (MySQL -vs - PostgreSQL)
-#	- 1.0.3 add port parameter for MySQL and PostgreSQL databases
-#	- 1.1.0 add python3 compatibility
-#		split import to be able to not install unnecessary dependencies
-#		Fixes issues with mysql connection
-#
-# Plugin check for icinga
-# ---------------------------------------------------- #
+
 import argparse
 import sys
+import psycopg2
+import psycopg2.extras
 
 
 # Constants
-VERSION = '1.1.0'
-
-# Variables
+__version__ = '2.0.0'
 databaseName = 'bareos'
-# Used to differentiate between database specific queries
-databaseType = 'mysql'
 
 
 def createBackupKindString(full, inc, diff):
@@ -48,6 +36,7 @@ def createBackupKindString(full, inc, diff):
 
     return ",".join(kind)
 
+
 def createFactor(unit):
     options = {'EB' : 2 ** 60,
                'PB' : 2 ** 50,
@@ -55,6 +44,7 @@ def createFactor(unit):
                'GB': 2 ** 30,
                'MB': 10 ** 20}
     return options[unit]
+
 
 def getState(state):
     options = {'T' : "Completed successfully",
@@ -65,26 +55,21 @@ def getState(state):
                'A': "Canceled by user"}
     return options[state]
 
-def checkFailedBackups(courser, time, warning, critical):
+
+def checkFailedBackups(cursor, time, warning, critical):
     checkState = {}
+
     if time is None:
         time = 7
-    # MySQL needs other Queries than PostgreSQL
-    if databaseType == "psql":
-        query = """
-        SELECT Job.Name,Level,starttime, JobStatus
-        FROM Job
-        Where JobStatus in ('E','f') and starttime > (now()::date-""" + str(time) + """ * '1 day'::INTERVAL);
-        """
-    # According to --help output, MySQL is the default
-    else:
-        query = """
-        SELECT Job.Name,Level,starttime, JobStatus
-        FROM Job
-        Where JobStatus in ('E','f') and starttime > DATE_SUB(now(), INTERVAL """ + str(time) + """ DAY);
-        """
-    courser.execute(query)
-    results = courser.fetchall()  # Returns a value
+
+    query = """
+    SELECT Job.Name,Level,starttime, JobStatus
+    FROM Job
+    WHERE JobStatus in ('E','f') AND starttime > (now()::date-""" + str(time) + """ * '1 day'::INTERVAL);
+    """
+
+    cursor.execute(query)
+    results = cursor.fetchall()
     result = len(results)
 
     if result >= int(critical):
@@ -101,54 +86,46 @@ def checkFailedBackups(courser, time, warning, critical):
 
     return checkState
 
-def checkBackupSize(courser, time, kind, factor):
-    if time is not None:
-        # MySQL needs other Queries than PostgreSQL
-        if databaseType == "psql":
-            query = """
-            SELECT ROUND(SUM(JobBytes/""" + str(float(factor)) + """),3)
-            FROM Job
-            Where Level in (""" + kind + """) and starttime > (now()-""" + str(time) + """ * '1 day'::INTERVAL) ;
-            """
-        # According to --help output MySQL is the default
-        else:
-            query = """
-            SELECT ROUND(SUM(JobBytes/""" + str(float(factor)) + """),3)
-            FROM Job
-            Where Level in (""" + kind + """) and starttime > DATE_SUB(now(), INTERVAL """ + str(time) + """ DAY);
-            """
-        courser.execute(query)
-        results = courser.fetchone()  # Returns a value
-        return results[0]
 
+def checkBackupSize(cursor, time, kind, factor):
     query = """
     SELECT ROUND(SUM(JobBytes/""" + str(float(factor)) + """),3)
     FROM Job
     Where Level in (""" + kind + """);
     """
-    courser.execute(query)
-    results = courser.fetchone()  # Returns a value
+
+    if time is not None:
+        query = """
+        SELECT ROUND(SUM(JobBytes/""" + str(float(factor)) + """),3)
+        FROM Job
+        Where Level in (""" + kind + """) and starttime > (now()-""" + str(time) + """ * '1 day'::INTERVAL) ;
+        """
+
+    cursor.execute(query)
+    results = cursor.fetchone()
 
     return results[0]
 
+
 def checkTotalBackupSize(cursor, time, kind, unit, warning, critical):
     checkState = {}
+
     result = checkBackupSize(cursor, time, kind, createFactor(unit))
     if result >= int(critical):
         checkState["returnCode"] = 2
-        if args.time:
+        if time:
             checkState["returnMessage"] = "CRITICAL - " + str(result) + " " + unit + " Kind:" + kind + " Days: " + str(time)
         else:
             checkState["returnMessage"] = "CRITICAL - " + str(result) + " " + unit + " Kind:" + kind
     elif result >= int(warning):
         checkState["returnCode"] = 1
-        if args.time:
+        if time:
             checkState["returnMessage"] = "WARNING - " + str(result) + " " + unit + " Kind:" + kind + " Days: " + str(time)
         else:
             checkState["returnMessage"] = "WARNING - " + str(result) + " " + unit + " Kind:" + kind
     else:
         checkState["returnCode"] = 0
-        if args.time:
+        if time:
             checkState["returnMessage"] = "OK - " + str(result) + " " + unit + " Kind:" + kind + " Days: " + str(time)
         else:
             checkState["returnMessage"] = "OK - " + str(result) + " " + unit + " Kind:" + kind
@@ -157,27 +134,23 @@ def checkTotalBackupSize(cursor, time, kind, unit, warning, critical):
 
     return checkState
 
-def checkOversizedBackups(courser, time, size, kind, unit, warning, critical):
+
+def checkOversizedBackups(cursor, time, size, kind, unit, warning, critical):
     checkState = {}
+
     if time is None:
         time = 7
+
     factor = createFactor(unit)
-    # MySQL needs other Queries than PostgreSQL
-    if databaseType == "psql":
-        query = """
-        SELECT Job.Name,Level,starttime, JobBytes/""" + str(float(factor)) + """
-        FROM Job
-        Where Level in (""" + kind + """) and starttime > (now()::date-""" + str(time) + """ * '1 day'::INTERVAL) and JobBytes/""" + str(float(factor)) + """>""" + str(size) + """;
-        """
-    # MySQL is the default
-    else:
-        query = """
-        SELECT Job.Name,Level,starttime, JobBytes/""" + str(float(factor)) + """
-        FROM Job
-        Where Level in (""" + kind + """) and starttime > DATE_SUB(now(), INTERVAL """ + str(time) + """ DAY) and JobBytes/""" + str(float(factor)) + """>""" + str(size) + """;
-        """
-    courser.execute(query)
-    results = courser.fetchall()  # Returns a value
+
+    query = """
+    SELECT Job.Name,Level,starttime, JobBytes/""" + str(float(factor)) + """
+    FROM Job
+    WHERE Level in (""" + kind + """) AND starttime > (now()::date-""" + str(time) + """ * '1 day'::INTERVAL) AND JobBytes/""" + str(float(factor)) + """>""" + str(size) + """;
+    """
+
+    cursor.execute(query)
+    results = cursor.fetchall()
     result = len(results)
 
     if result >= int(critical):
@@ -194,26 +167,20 @@ def checkOversizedBackups(courser, time, size, kind, unit, warning, critical):
 
     return checkState
 
+
 def checkEmptyBackups(cursor, time, kind, warning, critical):
     checkState = {}
     if time is None:
         time = 7
-    # MySQL needs other Queries than PostgreSQL
-    if databaseType == "psql":
-        query = """
-        SELECT Job.Name,Level,starttime
-        FROM Job
-        Where Level in (""" + str(kind) + """) and JobBytes=0 and starttime > (now()::date-""" + str(time) + """ * '1 day'::INTERVAL) and JobStatus in ('T');
-        """
-    # MySQL is the default
-    else:
-        query = """
-        SELECT Job.Name,Level,starttime
-        FROM Job
-        Where Level in (""" + str(kind) + """) and JobBytes=0 and starttime > DATE_SUB(now(), INTERVAL """ + str(time) + """ DAY) and JobStatus in ('T');
-        """
+
+    query = """
+    SELECT Job.Name,Level,starttime
+    FROM Job
+    WHERE Level in (""" + str(kind) + """) AND JobBytes=0 AND starttime > (now()::date-""" + str(time) + """ * '1 day'::INTERVAL) AND JobStatus in ('T');
+    """
+
     cursor.execute(query)
-    results = cursor.fetchall()  # Returns a value
+    results = cursor.fetchall()
     result = len(results)
 
     if result >= int(critical):
@@ -231,27 +198,20 @@ def checkEmptyBackups(cursor, time, kind, warning, critical):
     return checkState
 
 
-# Checks on Jobs
 def checkJobs(cursor, state, kind, time, warning, critical):
     checkState = {}
+
     if time is None:
         time = 7
-    # MySQL needs other Queries than PostgreSQL
-    if databaseType == "psql":
-        query = """
-        Select count(Job.Name)
-        From Job
-        Where Job.JobStatus like '"""+str(state)+"""' and (starttime > (now()::date-"""+str(time)+""" * '1 day'::INTERVAL) or starttime IS NULL) and Job.Level in ("""+kind+""");
-        """
-    # MySQL is the default
-    else:
-        query = """
-        Select count(Job.Name)
-        From Job
-        Where Job.JobStatus like '"""+str(state)+"""' and (starttime > DATE_SUB(now(), INTERVAL """ + str(time) + """ DAY) or starttime IS NULL) and Job.Level in ("""+kind+""");
-        """
+
+    query = """
+    SELECT count(Job.Name)
+    FROM Job
+    WHERE Job.JobStatus like '"""+str(state)+"""' AND (starttime > (now()::date-"""+str(time)+""" * '1 day'::INTERVAL) OR starttime IS NULL) AND Job.Level in ("""+kind+""");
+    """
+
     cursor.execute(query)
-    results = cursor.fetchone()  # Returns a value
+    results = cursor.fetchone()
     result = float(results[0])
 
     if result >= int(critical):
@@ -268,26 +228,21 @@ def checkJobs(cursor, state, kind, time, warning, critical):
 
     return checkState
 
+
 def checkSingleJob(cursor, name, state, kind, time, warning, critical):
     checkState = {}
+
     if time is None:
         time = 7
-    # MySQL needs other Queries than PostgreSQL
-    if databaseType == "psql":
-        query = """
-        Select Job.Name,Job.JobStatus, Job.Starttime
-        FROm Job
-        Where Job.Name like '%"""+name+"""%' and Job.JobStatus like '"""+state+"""' and (starttime > (now()::date-"""+str(time)+""" * '1 day'::INTERVAL) or starttime IS NULL) and Job.Level in ("""+kind+""");
-        """
-    # MySQL is the default
-    else:
-        query = """
-        Select Job.Name,Job.JobStatus, Job.Starttime
-        FROm Job
-        Where Job.Name like '%"""+name+"""%' and Job.JobStatus like '"""+state+"""' and (starttime > DATE_SUB(now(), INTERVAL """ + str(time) + """ DAY) or starttime IS NULL) and Job.Level in ("""+kind+""");
-        """
+
+    query = """
+    SELECT Job.Name,Job.JobStatus, Job.Starttime
+    FROM Job
+    WHERE Job.Name like '%"""+name+"""%' AND Job.JobStatus like '"""+state+"""' AND (starttime > (now()::date-"""+str(time)+""" * '1 day'::INTERVAL) OR starttime IS NULL) AND Job.Level in ("""+kind+""");
+    """
+
     cursor.execute(query)
-    results = cursor.fetchall()  # Returns a value
+    results = cursor.fetchall()
     result = len(results)
 
     if result >= int(critical):
@@ -304,26 +259,21 @@ def checkSingleJob(cursor, name, state, kind, time, warning, critical):
 
     return checkState
 
+
 def checkRunTimeJobs(cursor,state,time,warning,critical):
     checkState = {}
+
     if time is None:
         time = 7
-    # MySQL needs other Queries than PostgreSQL
-    if databaseType == "psql":
-        query = """
-        Select Count(Job.Name)
-        FROm Job
-        Where starttime < (now()::date-"""+str(time)+""" * '1 day'::INTERVAL) and Job.JobStatus like '"""+state+"""';
-        """
-    # MySQL is the default
-    else:
-        query = """
-        Select Count(Job.Name)
-        FROm Job
-        Where starttime < DATE_SUB(now(), INTERVAL """ + str(time) + """ DAY) and Job.JobStatus like '"""+state+"""';
-        """
+
+    query = """
+    SELECT Count(Job.Name)
+    FROM Job
+    WHERE starttime < (now()::date-"""+str(time)+""" * '1 day'::INTERVAL) AND Job.JobStatus like '"""+state+"""';
+    """
+
     cursor.execute(query)
-    results = cursor.fetchone()  # Returns a value
+    results = cursor.fetchone()
     result = float(results[0])
 
     if result >= int(critical):
@@ -341,7 +291,6 @@ def checkRunTimeJobs(cursor,state,time,warning,critical):
     return checkState
 
 
-# Checks on Tapes
 def checkTapesInStorage(cursor, warning, critical):
     checkState = {}
 
@@ -353,7 +302,7 @@ def checkTapesInStorage(cursor, warning, critical):
     AND Media.StorageId=Storage.StorageId;
     """
     cursor.execute(query)
-    results = cursor.fetchone()  # Returns a value
+    results = cursor.fetchone()
     result = float(results[0])
 
     if result <= int(critical):
@@ -366,17 +315,20 @@ def checkTapesInStorage(cursor, warning, critical):
         checkState["returnCode"] = 0
         checkState["returnMessage"] = "OK - " + str(result) + " Tapes are in the Storage"
     checkState["performanceData"] = "Tapes=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
+
     return checkState
+
 
 def checkExpiredTapes(cursor, warning, critical):
     checkState = {}
+
     query = """
     SELECT Count(MediaId)
     FROM Media
-    WHERE lastwritten+(media.volretention * '1 second'::INTERVAL)<now() and volstatus not like 'Error';
+    WHERE lastwritten+(media.volretention * '1 second'::INTERVAL)<now() AND volstatus not like 'Error';
     """
     cursor.execute(query)
-    results = cursor.fetchone()  # Returns a value
+    results = cursor.fetchone()
     result = float(results[0])
 
     if result <= int(critical):
@@ -396,13 +348,14 @@ def checkExpiredTapes(cursor, warning, critical):
 
 def checkWillExpiredTapes(cursor, time, warning, critical):
     checkState = {}
+
     query = """
     SELECT Count(MediaId)
     FROM Media
-    WHERE lastwritten+(media.volretention * '1 second'::INTERVAL)<now()+(""" + str(time) + """ * '1 day'::INTERVAL) and lastwritten+(media.volretention * '1 second'::INTERVAL)>now() and volstatus not like 'Error';;
+    WHERE lastwritten+(media.volretention * '1 second'::INTERVAL)<now()+(""" + str(time) + """ * '1 day'::INTERVAL) AND lastwritten+(media.volretention * '1 second'::INTERVAL)>now() AND volstatus not like 'Error';;
     """
     cursor.execute(query)
-    results = cursor.fetchone()  # Returns a value
+    results = cursor.fetchone()
     result = float(results[0])
 
     if result <= int(critical):
@@ -421,14 +374,14 @@ def checkWillExpiredTapes(cursor, time, warning, critical):
 
 def checkReplaceTapes(cursor, mounts, warning, critical):
     checkState = {}
+
     query = """
     SELECT COUNT(VolumeName)
     FROM Media
-    WHERE (VolErrors>0) OR (VolStatus='Error') OR (VolMounts>""" + str(mounts) + """) OR
-    (VolStatus='Disabled');
+    WHERE (VolErrors>0) OR (VolStatus='Error') OR (VolMounts>""" + str(mounts) + """) OR (VolStatus='Disabled');
     """
     cursor.execute(query)
-    results = cursor.fetchone()  # Returns a value
+    results = cursor.fetchone()
     result = float(results[0])
 
     if result >= int(critical):
@@ -446,20 +399,20 @@ def checkReplaceTapes(cursor, mounts, warning, critical):
     return checkState
 
 
-
-
-def checkEmptyTapes(courser, warning, critical):
+def checkEmptyTapes(cursor, warning, critical):
     checkState = {}
+
     query = """
-     SELECT Count(MediaId)
-      FROM Media,Pool,Storage
-      WHERE Media.PoolId=Pool.PoolId
-      AND Slot>0 AND InChanger=1
-      AND Media.StorageId=Storage.StorageId
-      AND (VolStatus like 'Purged' or VolStatus like 'Recycle' or lastwritten+(media.volretention * '1 second'::INTERVAL)<now() and VolStatus not like 'Error');
+    SELECT Count(MediaId)
+    FROM Media,Pool,Storage
+    WHERE Media.PoolId=Pool.PoolId
+    AND Slot>0 AND InChanger=1
+    AND Media.StorageId=Storage.StorageId
+    AND (VolStatus like 'Purged' OR VolStatus like 'Recycle' OR lastwritten+(media.volretention * '1 second'::INTERVAL)<now() AND VolStatus not like 'Error');
     """
-    courser.execute(query)
-    results = courser.fetchone()  # Returns a value
+
+    cursor.execute(query)
+    results = cursor.fetchone()
     result = float(results[0])
 
     if result <= int(critical):
@@ -477,39 +430,18 @@ def checkEmptyTapes(courser, warning, critical):
     return checkState
 
 
-def connectDB(userName, pw, hostName, database, port):
-    if database in ["postgresql", "p", "psql"]:
-        global databaseType # pylint: disable=global-statement
-        databaseType = 'psql'
-        try:
-            import psycopg2
-            import psycopg2.extras
-            # Define our connection string
-            connString = "host='" + hostName + "' port=" + str(port) + " dbname='" + databaseName + "' user='" + userName + "' password='" + pw + "'"
-            # get a connection, if a connect cannot be made an exception will be raised here
-            conn = psycopg2.connect(connString)
-            # conn.cursor will return a cursor object, you can use this cursor to perform queries
-            cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-
-            return cursor
-        except psycopg2.DatabaseError as e:
-            checkState = {}
-            checkState["returnCode"] = 3
-            checkState["returnMessage"] = "UNKNOWN - " + str(e)[:-1]
-            checkState["performanceData"] = ";;;;"
-            printNagiosOutput(checkState)
-
-    if database in ["mysql", "m"]:
-        try:
-            import MySQLdb
-            conn = MySQLdb.connect(host=hostName, user=userName, password=pw, database=databaseName, port=port)
-            return conn.cursor()
-        except MySQLdb.Error as e:
-            checkState = {}
-            checkState["returnCode"] = 3
-            checkState["returnMessage"] = "UNKNOWN - " + str(e)[:-1]
-            checkState["performanceData"] = ";;;;"
-            printNagiosOutput(checkState)
+def connectDB(username, pw, hostname, databasename, port):
+    try:
+        connString = "host='" + hostname + "' port=" + str(port) + " dbname='" + databasename + "' user='" + username + "' password='" + pw + "'"
+        conn = psycopg2.connect(connString)
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+        return cursor
+    except psycopg2.DatabaseError as e:
+        checkState = {}
+        checkState["returnCode"] = 3
+        checkState["returnMessage"] = "UNKNOWN - " + str(e)[:-1]
+        checkState["performanceData"] = ";;;;"
+        printNagiosOutput(checkState)
 
 def printNagiosOutput(checkResult):
     if checkResult is not None:
@@ -519,15 +451,15 @@ def printNagiosOutput(checkResult):
         print("UNKNOWN - Error in Script")
         sys.exit(3)
 
-def argumentParser():
+def commandline(args):
     parser = argparse.ArgumentParser(description='Check status of the bareos backups')
     group = parser.add_argument_group()
     group.add_argument('-u', '--user', dest='user', action='store', required=True, help='user name for the database connections')
     group.add_argument('-p', '--password', dest='password', action='store', help='password for the database connections', default="")
     group.add_argument('-H', '--Host', dest='host', action='store', help='database host', default="127.0.0.1")
-    group.add_argument('-P', '--port', dest='port', action='store', help='database port', default=3306, type=int)
-    group.add_argument('-v', '--version', action='version', version=f'%(prog)s {VERSION}')
-    parser.add_argument('-d', '--database', dest='database', choices=['mysql', 'm', 'postgresql', 'p', 'psql'], default='mysql', help='the database kind for the database connection (m=mysql, p=psql) (Default=Mysql)')
+    group.add_argument('-P', '--port', dest='port', action='store', help='database port', default=5432, type=int)
+    group.add_argument('-d', '--database', dest='database', default='bareos', help='database name')
+    group.add_argument('-v', '--version', action='version', version=f'%(prog)s {__version__}')
 
     subParser = parser.add_subparsers()
 
@@ -560,7 +492,6 @@ def argumentParser():
     tapeParser.add_argument('-m', '--mounts', dest='mounts', action='store', help='Amout of allowed mounts for a tape [used for replace tapes]', default=200)
     tapeParser.add_argument('-t', '--time', dest='time', action='store', help='Time in days (default=7 days)', default=7)
 
-
     statusParser = subParser.add_parser('status', help='Specific status informations')
     statusGroup = statusParser.add_mutually_exclusive_group(required=True)
     statusParser.set_defaults(func=checkStatus)
@@ -577,8 +508,8 @@ def argumentParser():
     statusParser.add_argument('-s', '--size', dest='size', action='store', help='Border value for oversized backups [default=2]', default=2)
     statusParser.add_argument('-u', '--unit', dest='unit', choices=['MB', 'GB', 'TB', 'PB', 'EB'], default='TB', help='display unit [default=TB]')
 
+    return parser.parse_args(args)
 
-    return parser
 
 def checkConnection(cursor):
     checkResult = {}
@@ -645,7 +576,12 @@ def checkStatus(args):
 
 
 if __name__ == '__main__':
-    parser = argumentParser()
-    args = parser.parse_args()
-    args.func(args)
-    # Get a cursor for the specific database connection
+    try:
+        ARGS = commandline(sys.argv[1:])
+        ARGS.func(ARGS)
+    except SystemExit:
+        # Re-throw the exception
+        raise sys.exc_info()[1].with_traceback(sys.exc_info()[2]) # pylint: disable=raise-missing-from
+    except:
+        print("UNKNOWN - Error: %s" % (str(sys.exc_info()[1])))
+        sys.exit(3)
