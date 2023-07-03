@@ -20,8 +20,7 @@ import psycopg2.extras
 
 # Constants
 __version__ = '2.0.0'
-databaseName = 'bareos'
-
+JOBSTATES = ["A", "B", "C", "D", "E", "F", "I", "L", "M", "R", "S", "T", "W", "a", "c", "d", "e", "f", "i", "j", "l", "m", "p", "q", "s", "t"]
 
 def createBackupKindString(full, inc, diff):
     if full is False and inc is False and diff is False:
@@ -480,7 +479,7 @@ def commandline(args):
     jobParser.add_argument('-u', '--unit', dest='unit', choices=['GB', 'TB', 'PB'], default='TB', help='display unit')
     jobParser.add_argument('-w', '--warning', dest='warning', action='store', help='Warning value', default=5)
     jobParser.add_argument('-c', '--critical', dest='critical', action='store', help='Critical value', default=10)
-    jobParser.add_argument('-st', '--state', dest='state', choices=['T', 'C', 'R', 'E', 'f','A'], default='C', help='T=Completed, C=Queued, R=Running, E=Terminated with Errors, f=Fatal error, A=Canceld by user [default=C]')
+    jobParser.add_argument('-st', '--state', dest='state', choices=JOBSTATES, default='C', help='Bareos Job State [default=C]')
     jobParser.add_argument('-f', '--full', dest='full', action='store_true', help='Backup kind full')
     jobParser.add_argument('-i', '--inc', dest='inc', action='store_true', help='Backup kind inc')
     jobParser.add_argument('-d', '--diff', dest='diff', action='store_true', help='Backup kind diff')
@@ -551,7 +550,7 @@ def checkJob(args):
     if checkConnection(cursor):
         if args.checkJob:
             kind = createBackupKindString(args.full, args.inc, args.diff)
-            checkResult = checkSingleJob(cursor, args.name, args.state,kind, args.time, args.warning, args.critical)
+            checkResult = checkSingleJob(cursor, args.name, args.state, kind, args.time, args.warning, args.critical)
         elif args.checkJobs:
             kind = createBackupKindString(args.full, args.inc, args.diff)
             checkResult = checkJobs(cursor, args.state, kind, args.time, args.warning, args.critical)
