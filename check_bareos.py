@@ -1,7 +1,5 @@
 #!/usr/bin/python3
 
-# ---------------------------------------------------- #
-# File : check_bareos
 # Author : Philipp Posovszky, DLR
 # E-Mail: Philipp.Posovszky@dlr.de
 # Date : 22/04/2015
@@ -396,6 +394,7 @@ def checkWillExpiredTapes(cursor, time, warning, critical):
 
     return checkState
 
+
 def checkReplaceTapes(cursor, mounts, warning, critical):
     checkState = {}
 
@@ -467,6 +466,7 @@ def connectDB(username, pw, hostname, databasename, port):
         checkState["performanceData"] = ";;;;"
         printNagiosOutput(checkState)
 
+
 def printNagiosOutput(checkResult):
     if checkResult is not None:
         print((checkResult["returnMessage"] + "|" + checkResult.get("performanceData", ";;;;")))
@@ -474,6 +474,7 @@ def printNagiosOutput(checkResult):
     else:
         print("UNKNOWN - Error in Script")
         sys.exit(3)
+
 
 def commandline(args):
     parser = argparse.ArgumentParser(description='Check Plugin for Bareos Backup Status')
@@ -487,7 +488,7 @@ def commandline(args):
 
     subParser = parser.add_subparsers()
 
-    jobParser = subParser.add_parser('job', help='Specific checks on a job')
+    jobParser = subParser.add_parser('job', help='Subchecks for Bareos Jobs')
     jobGroup = jobParser.add_mutually_exclusive_group(required=True)
     jobParser.set_defaults(func=checkJob)
     jobGroup.add_argument('-js', '--checkJobs', dest='checkJobs', action='store_true', help='Check how many jobs are in a specific state [default=queued]')
@@ -503,7 +504,7 @@ def commandline(args):
     jobParser.add_argument('-i', '--inc', dest='inc', action='store_true', help='Backup kind inc')
     jobParser.add_argument('-d', '--diff', dest='diff', action='store_true', help='Backup kind diff')
 
-    tapeParser = subParser.add_parser('tape', help='Specific checks on a tapes')
+    tapeParser = subParser.add_parser('tape', help='Subcheck for Bareos States')
     tapeGroup = tapeParser.add_mutually_exclusive_group(required=True)
     tapeParser.set_defaults(func=checkTape)
     tapeGroup.add_argument('-e', '--emptyTapes', dest='emptyTapes', action='store_true', help='Count empty tapes in the storage (Status Purged/Expired)')
@@ -516,7 +517,7 @@ def commandline(args):
     tapeParser.add_argument('-m', '--mounts', dest='mounts', action='store', help='Amout of allowed mounts for a tape [used for replace tapes]', default=200)
     tapeParser.add_argument('-t', '--time', dest='time', action='store', help='Time in days (default=7 days)', default=7)
 
-    statusParser = subParser.add_parser('status', help='Specific status informations')
+    statusParser = subParser.add_parser('status', help='Subcheck for various Bareos information')
     statusGroup = statusParser.add_mutually_exclusive_group(required=True)
     statusParser.set_defaults(func=checkStatus)
     statusGroup.add_argument('-b', '--totalBackupsSize', dest='totalBackupsSize', action='store_true', help='the size of all backups in the database [use time and kind for mor restrictions]')
@@ -544,6 +545,7 @@ def checkConnection(cursor):
         return False
 
     return True
+
 
 def checkTape(args):
     cursor = connectDB(args.user, args.password, args.host, args.database, args.port)
