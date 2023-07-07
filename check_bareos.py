@@ -100,7 +100,7 @@ def checkFailedBackups(cursor, time, warning, critical):
         checkState["returnCode"] = 0
         checkState["returnMessage"] = "[OK] - " + str(result) + " Backups failed/canceled in the last " + str(time) + " days"
 
-    checkState["performanceData"] = "Failed=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
+    checkState["performanceData"] = "bareos.backup.failed=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
 
     return checkState
 
@@ -147,7 +147,7 @@ def checkTotalBackupSize(cursor, time, kind, unit, warning, critical):
         if time:
             checkState["returnMessage"] += " Days: " + str(time)
 
-    checkState["performanceData"] = "Size=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
+    checkState["performanceData"] = "bareos.backup.size=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
 
     return checkState
 
@@ -180,7 +180,7 @@ def checkOversizedBackups(cursor, time, size, kind, unit, warning, critical):
         checkState["returnCode"] = 0
         checkState["returnMessage"] = "[OK] - No " + kind + " Backup larger than " + str(size) + " " + unit + " in the last " + str(time) + " days"
 
-    checkState["performanceData"] = "OverSized=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
+    checkState["performanceData"] = "bareos.backup.oversized=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
 
     return checkState
 
@@ -211,7 +211,7 @@ def checkEmptyBackups(cursor, time, kind, warning, critical):
         checkState["returnCode"] = 0
         checkState["returnMessage"] = "[OK] - All " + str(kind) + " Backups are fine"
 
-    checkState["performanceData"] = "EmptyBackups=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
+    checkState["performanceData"] = "bareos.backup.empty=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
 
     return checkState
 
@@ -242,7 +242,7 @@ def checkJobs(cursor, state, kind, time, warning, critical):
         checkState["returnCode"] = 0
         checkState["returnMessage"] = "[OK] - " + str(result) + " Jobs are in the state: " + JOBSTATES.get(state, state)
 
-    checkState["performanceData"] = JOBSTATES.get(state, state) + "=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
+    checkState["performanceData"] = "'bareos." + JOBSTATES.get(state, state) + "'=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
 
     return checkState
 
@@ -279,7 +279,7 @@ def checkSingleJob(cursor, name, state, kind, time, warning, critical):
         checkState["returnCode"] = 0
         checkState["returnMessage"] = "[OK] - " + str(result) + " Jobs are in the state: " + JOBSTATES.get(state, state)
 
-    checkState["performanceData"] = JOBSTATES.get(state, state) + "=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
+    checkState["performanceData"] = "'bareos." + JOBSTATES.get(state, state) + "'=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
 
     return checkState
 
@@ -310,7 +310,7 @@ def checkRunTimeJobs(cursor,state,time,warning,critical):
         checkState["returnCode"] = 0
         checkState["returnMessage"] = "[OK] - " + str(result) + " Jobs are running longer than " + str(time) + " days"
 
-    checkState["performanceData"] = "Count=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
+    checkState["performanceData"] = "bareos.job.count=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
 
     return checkState
 
@@ -338,7 +338,7 @@ def checkTapesInStorage(cursor, warning, critical):
     else:
         checkState["returnCode"] = 0
         checkState["returnMessage"] = "[OK] - " + str(result) + " Tapes are in the Storage"
-    checkState["performanceData"] = "Tapes=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
+    checkState["performanceData"] = "bareos.tape.instorage=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
 
     return checkState
 
@@ -365,7 +365,7 @@ def checkExpiredTapes(cursor, warning, critical):
         checkState["returnCode"] = 0
         checkState["returnMessage"] = "[OK] - Tapes " + str(result) + " expired"
 
-    checkState["performanceData"] = "Expired=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
+    checkState["performanceData"] = "bareos.tape.expired=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
 
     return checkState
 
@@ -392,7 +392,7 @@ def checkWillExpiredTapes(cursor, time, warning, critical):
         checkState["returnCode"] = 0
         checkState["returnMessage"] = "[OK] - Tapes " + str(result) + " will expire in next " + str(time) + " days"
 
-    checkState["performanceData"] = "Expire=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
+    checkState["performanceData"] = "bareos.tape.willexpire=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
 
     return checkState
 
@@ -418,7 +418,7 @@ def checkReplaceTapes(cursor, mounts, warning, critical):
         checkState["returnCode"] = 0
         checkState["returnMessage"] = "[OK] - " + str(result) + " Taples have to be replaced in the near future"
 
-    checkState["performanceData"] = "Replace=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
+    checkState["performanceData"] = "bareos.tape.replace=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
 
     return checkState
 
@@ -449,7 +449,7 @@ def checkEmptyTapes(cursor, warning, critical):
         checkState["returnCode"] = 0
         checkState["returnMessage"] = "[OK] - " + str(result) + " Tapes are empty in the Storage"
 
-    checkState["performanceData"] = "Empty=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
+    checkState["performanceData"] = "bareos.tape.empty=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
 
     return checkState
 
