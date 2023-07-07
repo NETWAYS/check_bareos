@@ -7,6 +7,8 @@
 # Modifications : Thomas Widhalm, NETWAYS GmbH
 # E-Mail: widhalmt@widhalm.or.at
 #
+# Modifications : Markus Opolka, NETWAYS GmbH
+#
 # This program is free software; you can redistribute it or modify
 # it under the terms of the GNU General Public License version 3.0
 

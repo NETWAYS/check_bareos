@@ -14,6 +14,7 @@ from check_bareos import printNagiosOutput
 from check_bareos import checkConnection
 from check_bareos import connectDB
 from check_bareos import Threshold
+from check_bareos import check_threshold
 
 from check_bareos import checkBackupSize
 from check_bareos import checkEmptyBackups
@@ -36,6 +37,22 @@ class CLITesting(unittest.TestCase):
         actual = commandline(['-H', 'localhost', '-U', 'bareos'])
         self.assertEqual(actual.host, 'localhost')
         self.assertEqual(actual.user, 'bareos')
+
+class ThresholdTesting(unittest.TestCase):
+
+    def test_thresholds(self):
+        self.assertEqual(check_threshold(0, Threshold("20"), Threshold("25")), 0)
+        self.assertEqual(check_threshold(10, Threshold("20"), Threshold("25")), 0)
+        self.assertEqual(check_threshold(24, Threshold("20"), Threshold("25")), 1)
+        self.assertEqual(check_threshold(26, Threshold("20"), Threshold("25")), 2)
+
+        self.assertEqual(check_threshold(15, Threshold("10:"), Threshold("5:")), 0)
+        self.assertEqual(check_threshold(9, Threshold("10:"), Threshold("5:")), 1)
+        self.assertEqual(check_threshold(2, Threshold("10:"), Threshold("5:")), 2)
+
+        self.assertEqual(check_threshold(15, Threshold("10:20"), Threshold("50")), 0)
+        self.assertEqual(check_threshold(5, Threshold("10:20"), Threshold("50")), 1)
+        self.assertEqual(check_threshold(10, Threshold("@10:20"), Threshold("50")), 1)
 
 
 class UtilTesting(unittest.TestCase):
