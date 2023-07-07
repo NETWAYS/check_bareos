@@ -20,7 +20,36 @@ import psycopg2.extras
 
 # Constants
 __version__ = '2.0.0'
-JOBSTATES = ["A", "B", "C", "D", "E", "F", "I", "L", "M", "R", "S", "T", "W", "a", "c", "d", "e", "f", "i", "j", "l", "m", "p", "q", "s", "t"]
+
+JOBSTATES = {
+    'A': 'Job canceled by user',
+    'B': 'Job blocked',
+    'C': 'Job created but not yet running',
+    'D': 'Verify differences',
+    'E': 'Job terminated in error',
+    'F': 'Job waiting on File daemon',
+    'I': 'Incomplete Job',
+    'L': 'Committing data (last despool)',
+    'M': 'Job waiting for Mount',
+    'R': 'Job running',
+    'S': 'Job waiting on the Storage daemon',
+    'T': 'Job terminated normally',
+    'W': 'Job terminated normally with warnings',
+    'a': 'SD despooling attributes',
+    'c': 'Waiting for Client resource',
+    'd': 'Waiting for maximum jobs',
+    'e': 'Non-fatal error',
+    'f': 'Fatal error',
+    'i': 'Doing batch insert file records',
+    'j': 'Waiting for job resource',
+    'l': 'Doing data despooling',
+    'm': 'Waiting for new media',
+    'p': 'Waiting for higher priority jobs to finish',
+    'q': 'Queued waiting for device',
+    's': 'Waiting for storage resource',
+    't': 'Waiting for start time'
+}
+
 
 def createBackupKindString(full, inc, diff):
     if full is False and inc is False and diff is False:
@@ -37,22 +66,12 @@ def createBackupKindString(full, inc, diff):
 
 
 def createFactor(unit):
-    options = {'EB' : 2 ** 60,
-               'PB' : 2 ** 50,
+    options = {'EB': 2 ** 60,
+               'PB': 2 ** 50,
                'TB': 2 ** 40,
                'GB': 2 ** 30,
                'MB': 10 ** 20}
     return options[unit]
-
-
-def getState(state):
-    options = {'T' : "Completed successfully",
-               'C' : "Created,not yet running",
-               'R': "Running",
-               'E': "Terminated with Errors",
-               'f': "Fatal error",
-               'A': "Canceled by user"}
-    return options[state]
 
 
 def checkFailedBackups(cursor, time, warning, critical):
@@ -110,6 +129,7 @@ def checkTotalBackupSize(cursor, time, kind, unit, warning, critical):
     checkState = {}
 
     result = checkBackupSize(cursor, time, kind, createFactor(unit))
+
     if result >= int(critical):
         checkState["returnCode"] = 2
         if time:
@@ -215,15 +235,15 @@ def checkJobs(cursor, state, kind, time, warning, critical):
 
     if result >= int(critical):
         checkState["returnCode"] = 2
-        checkState["returnMessage"] = "CRITICAL - " + str(result) + " Jobs are in the state: "+str(getState(state))
+        checkState["returnMessage"] = "CRITICAL - " + str(result) + " Jobs are in the state: " + JOBSTATES.get(state, state)
     elif result >= int(warning):
         checkState["returnCode"] = 1
-        checkState["returnMessage"] = "WARNING - " + str(result) + " Jobs are in the state: "+str(getState(state))
+        checkState["returnMessage"] = "WARNING - " + str(result) + " Jobs are in the state: " + JOBSTATES.get(state, state)
     else:
         checkState["returnCode"] = 0
-        checkState["returnMessage"] = "OK - " + str(result) + " Jobs are in the state: "+str(getState(state))
+        checkState["returnMessage"] = "OK - " + str(result) + " Jobs are in the state: " + JOBSTATES.get(state, state)
 
-    checkState["performanceData"] = str(getState(state))+"=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
+    checkState["performanceData"] = JOBSTATES.get(state, state) + "=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
 
     return checkState
 
@@ -252,15 +272,15 @@ def checkSingleJob(cursor, name, state, kind, time, warning, critical):
 
     if result >= int(critical):
         checkState["returnCode"] = 2
-        checkState["returnMessage"] = "CRITICAL - " + str(result) + " Jobs are in the state: "+str(getState(state))
+        checkState["returnMessage"] = "CRITICAL - " + str(result) + " Jobs are in the state: " + JOBSTATES.get(state, state)
     elif result >= int(warning):
         checkState["returnCode"] = 1
-        checkState["returnMessage"] = "WARNING - " + str(result) + " Jobs are in the state: "+str(getState(state))
+        checkState["returnMessage"] = "WARNING - " + str(result) + " Jobs are in the state: " + JOBSTATES.get(state, state)
     else:
         checkState["returnCode"] = 0
-        checkState["returnMessage"] = "OK - " + str(result) + " Jobs are in the state: "+str(getState(state))
+        checkState["returnMessage"] = "OK - " + str(result) + " Jobs are in the state: " + JOBSTATES.get(state, state)
 
-    checkState["performanceData"] = str(getState(state))+"=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
+    checkState["performanceData"] = JOBSTATES.get(state, state) + "=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
 
     return checkState
 
@@ -479,7 +499,7 @@ def commandline(args):
     jobParser.add_argument('-u', '--unit', dest='unit', choices=['GB', 'TB', 'PB'], default='TB', help='display unit')
     jobParser.add_argument('-w', '--warning', dest='warning', action='store', help='Warning value', default=5)
     jobParser.add_argument('-c', '--critical', dest='critical', action='store', help='Critical value', default=10)
-    jobParser.add_argument('-st', '--state', dest='state', choices=JOBSTATES, default='C', help='Bareos Job State [default=C]')
+    jobParser.add_argument('-st', '--state', dest='state', choices=JOBSTATES.keys(), default='C', help='Bareos Job State [default=C]')
     jobParser.add_argument('-f', '--full', dest='full', action='store_true', help='Backup kind full')
     jobParser.add_argument('-i', '--inc', dest='inc', action='store_true', help='Backup kind inc')
     jobParser.add_argument('-d', '--diff', dest='diff', action='store_true', help='Backup kind diff')
