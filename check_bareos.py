@@ -476,7 +476,7 @@ def printNagiosOutput(checkResult):
         sys.exit(3)
 
 def commandline(args):
-    parser = argparse.ArgumentParser(description='Check status of the bareos backups')
+    parser = argparse.ArgumentParser(description='Check Plugin for Bareos Backup Status')
     group = parser.add_argument_group()
     group.add_argument('-U', '--user', dest='user', action='store', required=True, help='user name for the database connections')
     group.add_argument('-p', '--password', dest='password', action='store', help='password for the database connections', default="")
