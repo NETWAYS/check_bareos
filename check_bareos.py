@@ -209,7 +209,7 @@ def checkEmptyBackups(cursor, time, kind, warning, critical):
         checkState["returnMessage"] = "WARNING - " + str(result) + " successful " + str(kind) + " backups are empty!"
     else:
         checkState["returnCode"] = 0
-        checkState["returnMessage"] = "OK - All " + str(kind) + " backups are fine"
+        checkState["returnMessage"] = "OK - All " + str(kind) + " Backups are fine"
 
     checkState["performanceData"] = "EmptyBackups=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
 
