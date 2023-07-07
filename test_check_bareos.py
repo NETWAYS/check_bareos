@@ -88,7 +88,7 @@ class SQLTesting(unittest.TestCase):
         c.fetchall.return_value = []
 
         actual = checkFailedBackups(c, 1, 1, 2)
-        expected = {'returnCode': 0, 'returnMessage': '[OK] - Only 0 Backups failed in the last 1 days', 'performanceData': 'Failed=0;1;2;;'}
+        expected = {'returnCode': 0, 'returnMessage': '[OK] - 0 Backups failed/canceled in the last 1 days', 'performanceData': 'Failed=0;1;2;;'}
         self.assertEqual(actual, expected)
 
         c.execute.assert_called_with("\n    SELECT Job.Name,Level,starttime, JobStatus\n    FROM Job\n    WHERE JobStatus in ('E','f') AND starttime > (now()::date-1 * '1 day'::INTERVAL);\n    ")

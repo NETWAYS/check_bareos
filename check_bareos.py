@@ -98,7 +98,7 @@ def checkFailedBackups(cursor, time, warning, critical):
         checkState["returnMessage"] = "[WARNING] - " + str(result) + " Backups failed/canceled last " + str(time) + " days"
     else:
         checkState["returnCode"] = 0
-        checkState["returnMessage"] = "[OK] - Only " + str(result) + " Backups failed in the last " + str(time) + " days"
+        checkState["returnMessage"] = "[OK] - " + str(result) + " Backups failed/canceled in the last " + str(time) + " days"
 
     checkState["performanceData"] = "Failed=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
 
@@ -331,10 +331,10 @@ def checkTapesInStorage(cursor, warning, critical):
 
     if result <= int(critical):
         checkState["returnCode"] = 2
-        checkState["returnMessage"] = "[CRITICAL] - Only " + str(result) + " Tapes are in the Storage"
+        checkState["returnMessage"] = "[CRITICAL] - " + str(result) + " Tapes are in the Storage"
     elif result <= int(warning):
         checkState["returnCode"] = 1
-        checkState["returnMessage"] = "[WARNING] - Only" + str(result) + " Tapes are in the Storage"
+        checkState["returnMessage"] = "[WARNING] - " + str(result) + " Tapes are in the Storage"
     else:
         checkState["returnCode"] = 0
         checkState["returnMessage"] = "[OK] - " + str(result) + " Tapes are in the Storage"
@@ -357,10 +357,10 @@ def checkExpiredTapes(cursor, warning, critical):
 
     if result <= int(critical):
         checkState["returnCode"] = 2
-        checkState["returnMessage"] = "[CRITICAL] - Only " + str(result) + " expired"
+        checkState["returnMessage"] = "[CRITICAL] - " + str(result) + " expired"
     elif result <= int(warning):
         checkState["returnCode"] = 1
-        checkState["returnMessage"] = "[WARNING] - Only " + str(result) + " expired"
+        checkState["returnMessage"] = "[WARNING] - " + str(result) + " expired"
     else:
         checkState["returnCode"] = 0
         checkState["returnMessage"] = "[OK] - Tapes " + str(result) + " expired"
@@ -384,10 +384,10 @@ def checkWillExpiredTapes(cursor, time, warning, critical):
 
     if result <= int(critical):
         checkState["returnCode"] = 2
-        checkState["returnMessage"] = "[CRITICAL] - Only " + str(result) + " will expire in next " + str(time) + " days"
+        checkState["returnMessage"] = "[CRITICAL] - Tapes " + str(result) + " will expire in next " + str(time) + " days"
     elif result <= int(warning):
         checkState["returnCode"] = 1
-        checkState["returnMessage"] = "[WARNING] - Only " + str(result) + " will expire in next " + str(time) + " days"
+        checkState["returnMessage"] = "[WARNING] - Tapes " + str(result) + " will expire in next " + str(time) + " days"
     else:
         checkState["returnCode"] = 0
         checkState["returnMessage"] = "[OK] - Tapes " + str(result) + " will expire in next " + str(time) + " days"
@@ -413,10 +413,10 @@ def checkReplaceTapes(cursor, mounts, warning, critical):
         checkState["returnMessage"] = "[CRITICAL] - " + str(result) + " Tapes have to be replaced in the near future"
     elif result >= int(warning):
         checkState["returnCode"] = 1
-        checkState["returnMessage"] = "[WARNING] - Only " + str(result) + " Tapes have to be replaced in the near future"
+        checkState["returnMessage"] = "[WARNING] - " + str(result) + " Tapes have to be replaced in the near future"
     else:
         checkState["returnCode"] = 0
-        checkState["returnMessage"] = "[OK] - Tapes " + str(result) + " have to be replaced in the near future"
+        checkState["returnMessage"] = "[OK] - " + str(result) + " Taples have to be replaced in the near future"
 
     checkState["performanceData"] = "Replace=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
 
@@ -441,10 +441,10 @@ def checkEmptyTapes(cursor, warning, critical):
 
     if result <= int(critical):
         checkState["returnCode"] = 2
-        checkState["returnMessage"] = "[CRITICAL] - Only " + str(result) + " Tapes are empty in the Storage"
+        checkState["returnMessage"] = "[CRITICAL] - " + str(result) + " Tapes are empty in the Storage"
     elif result <= int(warning):
         checkState["returnCode"] = 1
-        checkState["returnMessage"] = "[WARNING] - Only " + str(result) + " Tapes are empty in the Storage"
+        checkState["returnMessage"] = "[WARNING] - " + str(result) + " Tapes are empty in the Storage"
     else:
         checkState["returnCode"] = 0
         checkState["returnMessage"] = "[OK] - " + str(result) + " Tapes are empty in the Storage"
