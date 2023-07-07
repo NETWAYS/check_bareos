@@ -92,13 +92,13 @@ def checkFailedBackups(cursor, time, warning, critical):
 
     if result >= int(critical):
         checkState["returnCode"] = 2
-        checkState["returnMessage"] = "CRITICAL - " + str(result) + " Backups failed/canceled last " + str(time) + " days"
+        checkState["returnMessage"] = "[CRITICAL] - " + str(result) + " Backups failed/canceled last " + str(time) + " days"
     elif result >= int(warning):
         checkState["returnCode"] = 1
-        checkState["returnMessage"] = "WARNING - " + str(result) + " Backups failed/canceled last " + str(time) + " days"
+        checkState["returnMessage"] = "[WARNING] - " + str(result) + " Backups failed/canceled last " + str(time) + " days"
     else:
         checkState["returnCode"] = 0
-        checkState["returnMessage"] = "OK - Only " + str(result) + " Backups failed in the last " + str(time) + " days"
+        checkState["returnMessage"] = "[OK] - Only " + str(result) + " Backups failed in the last " + str(time) + " days"
 
     checkState["performanceData"] = "Failed=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
 
@@ -132,18 +132,18 @@ def checkTotalBackupSize(cursor, time, kind, unit, warning, critical):
 
     if result >= int(critical):
         checkState["returnCode"] = 2
-        checkState["returnMessage"] = "CRITICAL - " + str(result) + " " + unit + " Kind:" + kind
+        checkState["returnMessage"] = "[CRITICAL] - " + str(result) + " " + unit + " Kind:" + kind
         if time:
             checkState["returnMessage"] += " Days: " + str(time)
 
     elif result >= int(warning):
         checkState["returnCode"] = 1
-        checkState["returnMessage"] = "WARNING - " + str(result) + " " + unit + " Kind:" + kind
+        checkState["returnMessage"] = "[WARNING] - " + str(result) + " " + unit + " Kind:" + kind
         if time:
             checkState["returnMessage"] += " Days: " + str(time)
     else:
         checkState["returnCode"] = 0
-        checkState["returnMessage"] = "OK - " + str(result) + " " + unit + " Kind:" + kind
+        checkState["returnMessage"] = "[OK] - " + str(result) + " " + unit + " Kind:" + kind
         if time:
             checkState["returnMessage"] += " Days: " + str(time)
 
@@ -172,13 +172,13 @@ def checkOversizedBackups(cursor, time, size, kind, unit, warning, critical):
 
     if result >= int(critical):
         checkState["returnCode"] = 2
-        checkState["returnMessage"] = "CRITICAL - " + str(result) + " " + kind + " Backups larger than " + str(size) + " " + unit + " in the last " + str(time) + " days"
+        checkState["returnMessage"] = "[CRITICAL] - " + str(result) + " " + kind + " Backups larger than " + str(size) + " " + unit + " in the last " + str(time) + " days"
     elif result >= int(warning):
         checkState["returnCode"] = 1
-        checkState["returnMessage"] = "WARNING - " + str(result) + " " + kind + " Backups larger than " + str(size) + " " + unit + " in the last " + str(time) + " days"
+        checkState["returnMessage"] = "[WARNING] - " + str(result) + " " + kind + " Backups larger than " + str(size) + " " + unit + " in the last " + str(time) + " days"
     else:
         checkState["returnCode"] = 0
-        checkState["returnMessage"] = "OK - No " + kind + " Backup larger than " + str(size) + " " + unit + " in the last " + str(time) + " days"
+        checkState["returnMessage"] = "[OK] - No " + kind + " Backup larger than " + str(size) + " " + unit + " in the last " + str(time) + " days"
 
     checkState["performanceData"] = "OverSized=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
 
@@ -203,13 +203,13 @@ def checkEmptyBackups(cursor, time, kind, warning, critical):
 
     if result >= int(critical):
         checkState["returnCode"] = 2
-        checkState["returnMessage"] = "CRITICAL - " + str(result) + " successful " + str(kind) + " backups are empty"
+        checkState["returnMessage"] = "[CRITICAL] - " + str(result) + " successful " + str(kind) + " backups are empty"
     elif result >= int(warning):
         checkState["returnCode"] = 1
-        checkState["returnMessage"] = "WARNING - " + str(result) + " successful " + str(kind) + " backups are empty!"
+        checkState["returnMessage"] = "[WARNING] - " + str(result) + " successful " + str(kind) + " backups are empty!"
     else:
         checkState["returnCode"] = 0
-        checkState["returnMessage"] = "OK - All " + str(kind) + " Backups are fine"
+        checkState["returnMessage"] = "[OK] - All " + str(kind) + " Backups are fine"
 
     checkState["performanceData"] = "EmptyBackups=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
 
@@ -234,13 +234,13 @@ def checkJobs(cursor, state, kind, time, warning, critical):
 
     if result >= int(critical):
         checkState["returnCode"] = 2
-        checkState["returnMessage"] = "CRITICAL - " + str(result) + " Jobs are in the state: " + JOBSTATES.get(state, state)
+        checkState["returnMessage"] = "[CRITICAL] - " + str(result) + " Jobs are in the state: " + JOBSTATES.get(state, state)
     elif result >= int(warning):
         checkState["returnCode"] = 1
-        checkState["returnMessage"] = "WARNING - " + str(result) + " Jobs are in the state: " + JOBSTATES.get(state, state)
+        checkState["returnMessage"] = "[WARNING] - " + str(result) + " Jobs are in the state: " + JOBSTATES.get(state, state)
     else:
         checkState["returnCode"] = 0
-        checkState["returnMessage"] = "OK - " + str(result) + " Jobs are in the state: " + JOBSTATES.get(state, state)
+        checkState["returnMessage"] = "[OK] - " + str(result) + " Jobs are in the state: " + JOBSTATES.get(state, state)
 
     checkState["performanceData"] = JOBSTATES.get(state, state) + "=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
 
@@ -271,13 +271,13 @@ def checkSingleJob(cursor, name, state, kind, time, warning, critical):
 
     if result >= int(critical):
         checkState["returnCode"] = 2
-        checkState["returnMessage"] = "CRITICAL - " + str(result) + " Jobs are in the state: " + JOBSTATES.get(state, state)
+        checkState["returnMessage"] = "[CRITICAL] - " + str(result) + " Jobs are in the state: " + JOBSTATES.get(state, state)
     elif result >= int(warning):
         checkState["returnCode"] = 1
-        checkState["returnMessage"] = "WARNING - " + str(result) + " Jobs are in the state: " + JOBSTATES.get(state, state)
+        checkState["returnMessage"] = "[WARNING] - " + str(result) + " Jobs are in the state: " + JOBSTATES.get(state, state)
     else:
         checkState["returnCode"] = 0
-        checkState["returnMessage"] = "OK - " + str(result) + " Jobs are in the state: " + JOBSTATES.get(state, state)
+        checkState["returnMessage"] = "[OK] - " + str(result) + " Jobs are in the state: " + JOBSTATES.get(state, state)
 
     checkState["performanceData"] = JOBSTATES.get(state, state) + "=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
 
@@ -302,13 +302,13 @@ def checkRunTimeJobs(cursor,state,time,warning,critical):
 
     if result >= int(critical):
         checkState["returnCode"] = 2
-        checkState["returnMessage"] = "CRITICAL - " + str(result) + " Jobs are running longer than " + str(time) + " days"
+        checkState["returnMessage"] = "[CRITICAL] - " + str(result) + " Jobs are running longer than " + str(time) + " days"
     elif result >= int(warning):
         checkState["returnCode"] = 1
-        checkState["returnMessage"] = "WARNING - " + str(result) + " Jobs are running longer than " + str(time) + " days"
+        checkState["returnMessage"] = "[WARNING] - " + str(result) + " Jobs are running longer than " + str(time) + " days"
     else:
         checkState["returnCode"] = 0
-        checkState["returnMessage"] = "OK - " + str(result) + " Jobs are running longer than " + str(time) + " days"
+        checkState["returnMessage"] = "[OK] - " + str(result) + " Jobs are running longer than " + str(time) + " days"
 
     checkState["performanceData"] = "Count=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
 
@@ -331,13 +331,13 @@ def checkTapesInStorage(cursor, warning, critical):
 
     if result <= int(critical):
         checkState["returnCode"] = 2
-        checkState["returnMessage"] = "CRITICAL - Only " + str(result) + " Tapes are in the Storage"
+        checkState["returnMessage"] = "[CRITICAL] - Only " + str(result) + " Tapes are in the Storage"
     elif result <= int(warning):
         checkState["returnCode"] = 1
-        checkState["returnMessage"] = "WARNING - Only" + str(result) + " Tapes are in the Storage"
+        checkState["returnMessage"] = "[WARNING] - Only" + str(result) + " Tapes are in the Storage"
     else:
         checkState["returnCode"] = 0
-        checkState["returnMessage"] = "OK - " + str(result) + " Tapes are in the Storage"
+        checkState["returnMessage"] = "[OK] - " + str(result) + " Tapes are in the Storage"
     checkState["performanceData"] = "Tapes=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
 
     return checkState
@@ -357,13 +357,13 @@ def checkExpiredTapes(cursor, warning, critical):
 
     if result <= int(critical):
         checkState["returnCode"] = 2
-        checkState["returnMessage"] = "CRITICAL - Only " + str(result) + " expired"
+        checkState["returnMessage"] = "[CRITICAL] - Only " + str(result) + " expired"
     elif result <= int(warning):
         checkState["returnCode"] = 1
-        checkState["returnMessage"] = "WARNING - Only " + str(result) + " expired"
+        checkState["returnMessage"] = "[WARNING] - Only " + str(result) + " expired"
     else:
         checkState["returnCode"] = 0
-        checkState["returnMessage"] = "OK - Tapes " + str(result) + " expired"
+        checkState["returnMessage"] = "[OK] - Tapes " + str(result) + " expired"
 
     checkState["performanceData"] = "Expired=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
 
@@ -384,13 +384,13 @@ def checkWillExpiredTapes(cursor, time, warning, critical):
 
     if result <= int(critical):
         checkState["returnCode"] = 2
-        checkState["returnMessage"] = "CRITICAL - Only " + str(result) + " will expire in next " + str(time) + " days"
+        checkState["returnMessage"] = "[CRITICAL] - Only " + str(result) + " will expire in next " + str(time) + " days"
     elif result <= int(warning):
         checkState["returnCode"] = 1
-        checkState["returnMessage"] = "WARNING - Only " + str(result) + " will expire in next " + str(time) + " days"
+        checkState["returnMessage"] = "[WARNING] - Only " + str(result) + " will expire in next " + str(time) + " days"
     else:
         checkState["returnCode"] = 0
-        checkState["returnMessage"] = "OK - Tapes " + str(result) + " will expire in next " + str(time) + " days"
+        checkState["returnMessage"] = "[OK] - Tapes " + str(result) + " will expire in next " + str(time) + " days"
 
     checkState["performanceData"] = "Expire=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
 
@@ -410,13 +410,13 @@ def checkReplaceTapes(cursor, mounts, warning, critical):
 
     if result >= int(critical):
         checkState["returnCode"] = 2
-        checkState["returnMessage"] = "CRITICAL - " + str(result) + " Tapes have to be replaced in the near future"
+        checkState["returnMessage"] = "[CRITICAL] - " + str(result) + " Tapes have to be replaced in the near future"
     elif result >= int(warning):
         checkState["returnCode"] = 1
-        checkState["returnMessage"] = "WARNING - Only " + str(result) + " Tapes have to be replaced in the near future"
+        checkState["returnMessage"] = "[WARNING] - Only " + str(result) + " Tapes have to be replaced in the near future"
     else:
         checkState["returnCode"] = 0
-        checkState["returnMessage"] = "OK - Tapes " + str(result) + " have to be replaced in the near future"
+        checkState["returnMessage"] = "[OK] - Tapes " + str(result) + " have to be replaced in the near future"
 
     checkState["performanceData"] = "Replace=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
 
@@ -441,13 +441,13 @@ def checkEmptyTapes(cursor, warning, critical):
 
     if result <= int(critical):
         checkState["returnCode"] = 2
-        checkState["returnMessage"] = "CRITICAL - Only " + str(result) + " Tapes are empty in the Storage"
+        checkState["returnMessage"] = "[CRITICAL] - Only " + str(result) + " Tapes are empty in the Storage"
     elif result <= int(warning):
         checkState["returnCode"] = 1
-        checkState["returnMessage"] = "WARNING - Only " + str(result) + " Tapes are empty in the Storage"
+        checkState["returnMessage"] = "[WARNING] - Only " + str(result) + " Tapes are empty in the Storage"
     else:
         checkState["returnCode"] = 0
-        checkState["returnMessage"] = "OK - " + str(result) + " Tapes are empty in the Storage"
+        checkState["returnMessage"] = "[OK] - " + str(result) + " Tapes are empty in the Storage"
 
     checkState["performanceData"] = "Empty=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
 
@@ -539,7 +539,7 @@ def checkConnection(cursor):
     checkResult = {}
     if cursor is None:
         checkResult["returnCode"] = 2
-        checkResult["returnMessage"] = "CRITICAL - No DB connection"
+        checkResult["returnMessage"] = "[CRITICAL] - No DB connection"
         printNagiosOutput(checkResult)
         return False
 
