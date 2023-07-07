@@ -153,13 +153,15 @@ def checkFailedBackups(cursor, time, warning, critical):
 
     if check_threshold(result, warning=warning, critical=critical) == CRITICAL:
         checkState["returnCode"] = 2
-        checkState["returnMessage"] = "[CRITICAL] - " + str(result) + " Backups failed/canceled last " + str(time) + " days"
+        checkState["returnMessage"] = "[CRITICAL]"
     elif check_threshold(result, warning=warning, critical=critical) == WARNING:
         checkState["returnCode"] = 1
-        checkState["returnMessage"] = "[WARNING] - " + str(result) + " Backups failed/canceled last " + str(time) + " days"
+        checkState["returnMessage"] = "[WARNING]"
     else:
         checkState["returnCode"] = 0
-        checkState["returnMessage"] = "[OK] - " + str(result) + " Backups failed/canceled in the last " + str(time) + " days"
+        checkState["returnMessage"] = "[OK]"
+
+    checkState["returnMessage"] +=  " - " + str(result) + " Backups failed/canceled in the last " + str(time) + " days"
 
     checkState["performanceData"] = "bareos.backup.failed=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
 
@@ -193,20 +195,19 @@ def checkTotalBackupSize(cursor, time, kind, unit, warning, critical):
 
     if check_threshold(result, warning=warning, critical=critical) == CRITICAL:
         checkState["returnCode"] = 2
-        checkState["returnMessage"] = "[CRITICAL] - " + str(result) + " " + unit + " Kind:" + kind
-        if time:
-            checkState["returnMessage"] += " Days: " + str(time)
+        checkState["returnMessage"] = "[CRITICAL]"
 
     elif check_threshold(result, warning=warning, critical=critical) == WARNING:
         checkState["returnCode"] = 1
-        checkState["returnMessage"] = "[WARNING] - " + str(result) + " " + unit + " Kind:" + kind
-        if time:
-            checkState["returnMessage"] += " Days: " + str(time)
+        checkState["returnMessage"] = "[WARNING]"
     else:
         checkState["returnCode"] = 0
-        checkState["returnMessage"] = "[OK] - " + str(result) + " " + unit + " Kind:" + kind
-        if time:
-            checkState["returnMessage"] += " Days: " + str(time)
+        checkState["returnMessage"] = "[OK]"
+
+    checkState["returnMessage"] += " - " + str(result) + " " + unit + " Kind:" + kind
+
+    if time:
+        checkState["returnMessage"] += " Days: " + str(time)
 
     checkState["performanceData"] = "bareos.backup.size=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
 
@@ -233,13 +234,15 @@ def checkOversizedBackups(cursor, time, size, kind, unit, warning, critical):
 
     if check_threshold(result, warning=warning, critical=critical) == CRITICAL:
         checkState["returnCode"] = 2
-        checkState["returnMessage"] = "[CRITICAL] - " + str(result) + " " + kind + " Backups larger than " + str(size) + " " + unit + " in the last " + str(time) + " days"
+        checkState["returnMessage"] = "[CRITICAL]"
     elif check_threshold(result, warning=warning, critical=critical) == WARNING:
         checkState["returnCode"] = 1
-        checkState["returnMessage"] = "[WARNING] - " + str(result) + " " + kind + " Backups larger than " + str(size) + " " + unit + " in the last " + str(time) + " days"
+        checkState["returnMessage"] = "[WARNING]"
     else:
         checkState["returnCode"] = 0
-        checkState["returnMessage"] = "[OK] - No " + kind + " Backup larger than " + str(size) + " " + unit + " in the last " + str(time) + " days"
+        checkState["returnMessage"] = "[OK]"
+
+    checkState["returnMessage"] += " - " + str(result) + " " + kind + " Backups larger than " + str(size) + " " + unit + " in the last " + str(time) + " days"
 
     checkState["performanceData"] = "bareos.backup.oversized=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
 
@@ -295,13 +298,15 @@ def checkJobs(cursor, state, kind, time, warning, critical):
 
     if check_threshold(result, warning=warning, critical=critical) == CRITICAL:
         checkState["returnCode"] = 2
-        checkState["returnMessage"] = "[CRITICAL] - " + str(result) + " Jobs are in the state: " + JOBSTATES.get(state, state)
+        checkState["returnMessage"] = "[CRITICAL]"
     elif check_threshold(result, warning=warning, critical=critical) == WARNING:
         checkState["returnCode"] = 1
-        checkState["returnMessage"] = "[WARNING] - " + str(result) + " Jobs are in the state: " + JOBSTATES.get(state, state)
+        checkState["returnMessage"] = "[WARNING]"
     else:
         checkState["returnCode"] = 0
-        checkState["returnMessage"] = "[OK] - " + str(result) + " Jobs are in the state: " + JOBSTATES.get(state, state)
+        checkState["returnMessage"] = "[OK]"
+
+    checkState["returnMessage"] += " - " + str(result) + " Jobs are in the state: " + JOBSTATES.get(state, state)
 
     checkState["performanceData"] = "'bareos." + JOBSTATES.get(state, state) + "'=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
 
@@ -332,13 +337,15 @@ def checkSingleJob(cursor, name, state, kind, time, warning, critical):
 
     if check_threshold(result, warning=warning, critical=critical) == CRITICAL:
         checkState["returnCode"] = 2
-        checkState["returnMessage"] = "[CRITICAL] - " + str(result) + " Jobs are in the state: " + JOBSTATES.get(state, state)
+        checkState["returnMessage"] = "[CRITICAL]"
     elif check_threshold(result, warning=warning, critical=critical) == WARNING:
         checkState["returnCode"] = 1
-        checkState["returnMessage"] = "[WARNING] - " + str(result) + " Jobs are in the state: " + JOBSTATES.get(state, state)
+        checkState["returnMessage"] = "[WARNING]"
     else:
         checkState["returnCode"] = 0
-        checkState["returnMessage"] = "[OK] - " + str(result) + " Jobs are in the state: " + JOBSTATES.get(state, state)
+        checkState["returnMessage"] = "[OK]"
+
+    checkState["returnMessage"] += " - " + str(result) + " Jobs are in the state: " + JOBSTATES.get(state, state)
 
     checkState["performanceData"] = "'bareos." + JOBSTATES.get(state, state) + "'=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
 
@@ -363,13 +370,15 @@ def checkRunTimeJobs(cursor,state,time,warning,critical):
 
     if check_threshold(result, warning=warning, critical=critical) == CRITICAL:
         checkState["returnCode"] = 2
-        checkState["returnMessage"] = "[CRITICAL] - " + str(result) + " Jobs are running longer than " + str(time) + " days"
+        checkState["returnMessage"] = "[CRITICAL]"
     elif check_threshold(result, warning=warning, critical=critical) == WARNING:
         checkState["returnCode"] = 1
-        checkState["returnMessage"] = "[WARNING] - " + str(result) + " Jobs are running longer than " + str(time) + " days"
+        checkState["returnMessage"] = "[WARNING]"
     else:
         checkState["returnCode"] = 0
-        checkState["returnMessage"] = "[OK] - " + str(result) + " Jobs are running longer than " + str(time) + " days"
+        checkState["returnMessage"] = "[OK]"
+
+    checkState["returnMessage"] += " - " + str(result) + " Jobs are running longer than " + str(time) + " days"
 
     checkState["performanceData"] = "bareos.job.count=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
 
@@ -392,13 +401,16 @@ def checkTapesInStorage(cursor, warning, critical):
 
     if check_threshold(result, warning=warning, critical=critical) == CRITICAL:
         checkState["returnCode"] = 2
-        checkState["returnMessage"] = "[CRITICAL] - " + str(result) + " Tapes are in the Storage"
+        checkState["returnMessage"] = "[CRITICAL]"
     elif check_threshold(result, warning=warning, critical=critical) == WARNING:
         checkState["returnCode"] = 1
-        checkState["returnMessage"] = "[WARNING] - " + str(result) + " Tapes are in the Storage"
+        checkState["returnMessage"] = "[WARNING]"
     else:
         checkState["returnCode"] = 0
-        checkState["returnMessage"] = "[OK] - " + str(result) + " Tapes are in the Storage"
+        checkState["returnMessage"] = "[OK]"
+
+    checkState["returnMessage"] += " - " + str(result) + " Tapes are in the Storage"
+
     checkState["performanceData"] = "bareos.tape.instorage=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
 
     return checkState
@@ -418,13 +430,15 @@ def checkExpiredTapes(cursor, warning, critical):
 
     if check_threshold(result, warning=warning, critical=critical) == CRITICAL:
         checkState["returnCode"] = 2
-        checkState["returnMessage"] = "[CRITICAL] - " + str(result) + " expired"
+        checkState["returnMessage"] = "[CRITICAL]"
     elif check_threshold(result, warning=warning, critical=critical) == WARNING:
         checkState["returnCode"] = 1
-        checkState["returnMessage"] = "[WARNING] - " + str(result) + " expired"
+        checkState["returnMessage"] = "[WARNING]"
     else:
         checkState["returnCode"] = 0
-        checkState["returnMessage"] = "[OK] - Tapes " + str(result) + " expired"
+        checkState["returnMessage"] = "[OK]"
+
+    checkState["returnMessage"] += " - Tapes " + str(result) + " expired"
 
     checkState["performanceData"] = "bareos.tape.expired=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
 
@@ -445,13 +459,15 @@ def checkWillExpiredTapes(cursor, time, warning, critical):
 
     if check_threshold(result, warning=warning, critical=critical) == CRITICAL:
         checkState["returnCode"] = 2
-        checkState["returnMessage"] = "[CRITICAL] - Tapes " + str(result) + " will expire in next " + str(time) + " days"
+        checkState["returnMessage"] = "[CRITICAL]"
     elif check_threshold(result, warning=warning, critical=critical) == WARNING:
         checkState["returnCode"] = 1
-        checkState["returnMessage"] = "[WARNING] - Tapes " + str(result) + " will expire in next " + str(time) + " days"
+        checkState["returnMessage"] = "[WARNING]"
     else:
         checkState["returnCode"] = 0
-        checkState["returnMessage"] = "[OK] - Tapes " + str(result) + " will expire in next " + str(time) + " days"
+        checkState["returnMessage"] = "[OK]"
+
+    checkState["returnMessage"] += " - Tapes " + str(result) + " will expire in next " + str(time) + " days"
 
     checkState["performanceData"] = "bareos.tape.willexpire=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
 
@@ -472,13 +488,15 @@ def checkReplaceTapes(cursor, mounts, warning, critical):
 
     if check_threshold(result, warning=warning, critical=critical) == CRITICAL:
         checkState["returnCode"] = 2
-        checkState["returnMessage"] = "[CRITICAL] - " + str(result) + " Tapes have to be replaced in the near future"
+        checkState["returnMessage"] = "[CRITICAL]"
     elif check_threshold(result, warning=warning, critical=critical) == WARNING:
         checkState["returnCode"] = 1
-        checkState["returnMessage"] = "[WARNING] - " + str(result) + " Tapes have to be replaced in the near future"
+        checkState["returnMessage"] = "[WARNING]"
     else:
         checkState["returnCode"] = 0
-        checkState["returnMessage"] = "[OK] - " + str(result) + " Taples have to be replaced in the near future"
+        checkState["returnMessage"] = "[OK]"
+
+    checkState["returnMessage"] += " - " + str(result) + " Taples have to be replaced in the near future"
 
     checkState["performanceData"] = "bareos.tape.replace=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
 
@@ -503,13 +521,15 @@ def checkEmptyTapes(cursor, warning, critical):
 
     if check_threshold(result, warning=warning, critical=critical) == CRITICAL:
         checkState["returnCode"] = 2
-        checkState["returnMessage"] = "[CRITICAL] - " + str(result) + " Tapes are empty in the Storage"
+        checkState["returnMessage"] = "[CRITICAL]"
     elif check_threshold(result, warning=warning, critical=critical) == WARNING:
         checkState["returnCode"] = 1
-        checkState["returnMessage"] = "[WARNING] - " + str(result) + " Tapes are empty in the Storage"
+        checkState["returnMessage"] = "[WARNING]"
     else:
         checkState["returnCode"] = 0
-        checkState["returnMessage"] = "[OK] - " + str(result) + " Tapes are empty in the Storage"
+        checkState["returnMessage"] = "[OK]"
+
+    checkState["returnMessage"] += " - " + str(result) + " Tapes are empty in the Storage"
 
     checkState["performanceData"] = "bareos.tape.empty=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
 

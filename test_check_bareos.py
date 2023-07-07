@@ -108,7 +108,7 @@ class SQLTesting(unittest.TestCase):
         c.fetchall.return_value = [1,2,3]
 
         actual = checkFailedBackups(c, 1, Threshold("1"), Threshold("2"))
-        expected = {'performanceData': 'bareos.backup.failed=3;1;2;;', 'returnCode': 2, 'returnMessage': '[CRITICAL] - 3 Backups failed/canceled last 1 days'}
+        expected = {'performanceData': 'bareos.backup.failed=3;1;2;;', 'returnCode': 2, 'returnMessage': '[CRITICAL] - 3 Backups failed/canceled in the last 1 days'}
         self.assertEqual(actual, expected)
 
     def test_checkBackupSize(self):
@@ -154,7 +154,7 @@ class SQLTesting(unittest.TestCase):
         c.fetchall.return_value = []
 
         actual = checkOversizedBackups(c, 1, 100, "'F','I','D'", "PB", Threshold(1), Threshold(2))
-        expected = {'returnCode': 0, 'returnMessage': "[OK] - No 'F','I','D' Backup larger than 100 PB in the last 1 days", 'performanceData': 'bareos.backup.oversized=0;1;2;;'}
+        expected = {'returnCode': 0, 'returnMessage': "[OK] - 0 'F','I','D' Backups larger than 100 PB in the last 1 days", 'performanceData': 'bareos.backup.oversized=0;1;2;;'}
 
         self.assertEqual(actual, expected)
 
