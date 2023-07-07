@@ -10,6 +10,7 @@ sys.path.append('..')
 from check_bareos import commandline
 from check_bareos import createBackupKindString
 from check_bareos import createFactor
+from check_bareos import printNagiosOutput
 
 from check_bareos import checkFailedBackups
 from check_bareos import checkBackupSize
@@ -39,6 +40,16 @@ class UtilTesting(unittest.TestCase):
         actual = createFactor('PB')
         expected = 1125899906842624
         self.assertEqual(actual, expected)
+
+    @mock.patch('builtins.print')
+    def test_printNagiosOutput(self, mock_print):
+        with self.assertRaises(SystemExit) as sysexit:
+            printNagiosOutput(None)
+        self.assertEqual(sysexit.exception.code, 3)
+
+        with self.assertRaises(SystemExit) as sysexit:
+            actual = printNagiosOutput({'returnCode': 1, 'returnMessage': "bar", 'performanceData': 'foo'})
+        self.assertEqual(sysexit.exception.code, 1)
 
 
 class SQLTesting(unittest.TestCase):

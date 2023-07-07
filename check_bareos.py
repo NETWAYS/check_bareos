@@ -599,7 +599,7 @@ def checkStatus(args):
         cursor.close()
 
 
-if __name__ == '__main__':
+if __name__ == '__main__': # pragma: no cover
     try:
         ARGS = commandline(sys.argv[1:])
         ARGS.func(ARGS)
