@@ -352,7 +352,7 @@ def checkSingleJob(cursor, name, state, kind, time, warning, critical):
     return checkState
 
 
-def checkRunTimeJobs(cursor,state,time,warning,critical):
+def checkRunTimeJobs(cursor, state, time, warning, critical):
     checkState = {}
 
     if time is None:
@@ -438,7 +438,7 @@ def checkExpiredTapes(cursor, warning, critical):
         checkState["returnCode"] = 0
         checkState["returnMessage"] = "[OK]"
 
-    checkState["returnMessage"] += " - Tapes " + str(result) + " expired"
+    checkState["returnMessage"] += " - " + str(result) + " Tapes are expired"
 
     checkState["performanceData"] = "bareos.tape.expired=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
 
@@ -467,7 +467,7 @@ def checkWillExpiredTapes(cursor, time, warning, critical):
         checkState["returnCode"] = 0
         checkState["returnMessage"] = "[OK]"
 
-    checkState["returnMessage"] += " - Tapes " + str(result) + " will expire in next " + str(time) + " days"
+    checkState["returnMessage"] += " - " + str(result) + " Tapes will expire in " + str(time) + " days"
 
     checkState["performanceData"] = "bareos.tape.willexpire=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
 
@@ -496,7 +496,7 @@ def checkReplaceTapes(cursor, mounts, warning, critical):
         checkState["returnCode"] = 0
         checkState["returnMessage"] = "[OK]"
 
-    checkState["returnMessage"] += " - " + str(result) + " Taples have to be replaced in the near future"
+    checkState["returnMessage"] += " - " + str(result) + " Tapes might need replacement"
 
     checkState["performanceData"] = "bareos.tape.replace=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
 
@@ -529,7 +529,7 @@ def checkEmptyTapes(cursor, warning, critical):
         checkState["returnCode"] = 0
         checkState["returnMessage"] = "[OK]"
 
-    checkState["returnMessage"] += " - " + str(result) + " Tapes are empty in the Storage"
+    checkState["returnMessage"] += " - " + str(result) + " Tapes are empty"
 
     checkState["performanceData"] = "bareos.tape.empty=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
 

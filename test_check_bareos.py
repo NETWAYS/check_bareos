@@ -11,15 +11,23 @@ from check_bareos import commandline
 from check_bareos import createBackupKindString
 from check_bareos import createFactor
 from check_bareos import printNagiosOutput
+from check_bareos import checkConnection
+from check_bareos import connectDB
 from check_bareos import Threshold
 
-from check_bareos import checkFailedBackups
 from check_bareos import checkBackupSize
-from check_bareos import checkTotalBackupSize
-from check_bareos import checkOversizedBackups
-from check_bareos import checkSingleJob
-from check_bareos import checkJobs
 from check_bareos import checkEmptyBackups
+from check_bareos import checkEmptyTapes
+from check_bareos import checkExpiredTapes
+from check_bareos import checkFailedBackups
+from check_bareos import checkJobs
+from check_bareos import checkOversizedBackups
+from check_bareos import checkReplaceTapes
+from check_bareos import checkRunTimeJobs
+from check_bareos import checkSingleJob
+from check_bareos import checkTapesInStorage
+from check_bareos import checkTotalBackupSize
+from check_bareos import checkWillExpiredTapes
 
 
 class CLITesting(unittest.TestCase):
@@ -31,6 +39,20 @@ class CLITesting(unittest.TestCase):
 
 
 class UtilTesting(unittest.TestCase):
+
+    # TODO checkConnection(cursor)
+    # TODO def checkTape(args)
+    # TODO def checkJob(args)
+
+    @mock.patch('check_bareos.psycopg2')
+    def test_connectDB(self, mock_sql):
+        con = mock.MagicMock()
+        con.cursor.return_value = "cursor"
+        mock_sql.connect.return_value = con
+        actual = connectDB("user", "password", "localhost", "bareos", 5432)
+
+        expected = "cursor"
+        self.assertEqual(actual, expected)
 
     def test_createBackupKindString(self):
         actual = createBackupKindString(True, True, True)
@@ -54,6 +76,93 @@ class UtilTesting(unittest.TestCase):
 
 
 class SQLTesting(unittest.TestCase):
+
+    def test_checkEmptyTapes(self):
+
+        c = mock.MagicMock()
+
+        c.fetchone.return_value = [2]
+        actual = checkEmptyTapes(c, Threshold(3), Threshold(5))
+        expected = {'returnCode': 0, 'returnMessage': '[OK] - 2.0 Tapes are empty', 'performanceData': 'bareos.tape.empty=2.0;3;5;;'}
+        self.assertEqual(actual, expected)
+
+        c.fetchone.return_value = [10]
+        actual = checkEmptyTapes(c, Threshold(3), Threshold(5))
+        expected = {'returnCode': 2, 'returnMessage': '[CRITICAL] - 10.0 Tapes are empty', 'performanceData': 'bareos.tape.empty=10.0;3;5;;'}
+        self.assertEqual(actual, expected)
+
+    def test_checkReplaceTapes(self):
+
+        c = mock.MagicMock()
+
+        c.fetchone.return_value = [2]
+        actual = checkReplaceTapes(c, "foo", Threshold(3), Threshold(5))
+        expected = {'returnCode': 0, 'returnMessage': '[OK] - 2.0 Tapes might need replacement', 'performanceData': 'bareos.tape.replace=2.0;3;5;;'}
+        self.assertEqual(actual, expected)
+
+        c.fetchone.return_value = [10]
+        actual = checkReplaceTapes(c, "foo", Threshold(3), Threshold(5))
+        expected = {'returnCode': 2, 'returnMessage': '[CRITICAL] - 10.0 Tapes might need replacement', 'performanceData': 'bareos.tape.replace=10.0;3;5;;'}
+        self.assertEqual(actual, expected)
+
+
+    def test_checkWillExpiredTapes(self):
+
+        c = mock.MagicMock()
+
+        c.fetchone.return_value = [2]
+        actual = checkWillExpiredTapes(c, 1, Threshold(3), Threshold(5))
+        expected = {'returnCode': 0, 'returnMessage': '[OK] - 2.0 Tapes will expire in 1 days', 'performanceData': 'bareos.tape.willexpire=2.0;3;5;;'}
+        self.assertEqual(actual, expected)
+
+        c.fetchone.return_value = [10]
+        actual = checkWillExpiredTapes(c, 1, Threshold(3), Threshold(5))
+        expected = {'returnCode': 2, 'returnMessage': '[CRITICAL] - 10.0 Tapes will expire in 1 days', 'performanceData': 'bareos.tape.willexpire=10.0;3;5;;'}
+        self.assertEqual(actual, expected)
+
+    def test_checkExpiredTapes(self):
+
+        c = mock.MagicMock()
+
+        c.fetchone.return_value = [2]
+        actual = checkExpiredTapes(c, Threshold(3), Threshold(5))
+        expected = {'returnCode': 0, 'returnMessage': '[OK] - 2.0 Tapes are expired', 'performanceData': 'bareos.tape.expired=2.0;3;5;;'}
+        self.assertEqual(actual, expected)
+
+        c.fetchone.return_value = [10]
+        actual = checkExpiredTapes(c, Threshold(3), Threshold(5))
+        expected = {'returnCode': 2, 'returnMessage': '[CRITICAL] - 10.0 Tapes are expired', 'performanceData': 'bareos.tape.expired=10.0;3;5;;'}
+        self.assertEqual(actual, expected)
+
+    def test_checkTapesInStorage(self):
+
+        c = mock.MagicMock()
+
+        c.fetchone.return_value = [2]
+        actual = checkTapesInStorage(c, Threshold(3), Threshold(5))
+        expected = {'returnCode': 0, 'returnMessage': '[OK] - 2.0 Tapes are in the Storage', 'performanceData': 'bareos.tape.instorage=2.0;3;5;;'}
+        self.assertEqual(actual, expected)
+
+        c.fetchone.return_value = [10]
+        actual = checkTapesInStorage(c, Threshold(3), Threshold(5))
+        expected = {'returnCode': 2, 'returnMessage': '[CRITICAL] - 10.0 Tapes are in the Storage', 'performanceData': 'bareos.tape.instorage=10.0;3;5;;'}
+        self.assertEqual(actual, expected)
+
+
+    def test_checkRunTimeJobs(self):
+
+        c = mock.MagicMock()
+
+        c.fetchone.return_value = [2]
+        actual = checkRunTimeJobs(c, "'F','I','D'", 1, Threshold(3), Threshold(5))
+        expected = {'returnCode': 0, 'returnMessage': '[OK] - 2.0 Jobs are running longer than 1 days', 'performanceData': 'bareos.job.count=2.0;3;5;;'}
+        self.assertEqual(actual, expected)
+
+        c.fetchone.return_value = [10]
+        actual = checkRunTimeJobs(c, "'F','I','D'", 1, Threshold(3), Threshold(5))
+        expected = {'returnCode': 2, 'returnMessage': '[CRITICAL] - 10.0 Jobs are running longer than 1 days', 'performanceData': 'bareos.job.count=10.0;3;5;;'}
+        self.assertEqual(actual, expected)
+
 
     def test_checkEmptyBackups(self):
 
