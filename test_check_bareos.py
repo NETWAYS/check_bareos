@@ -306,7 +306,7 @@ class SQLTesting(unittest.TestCase):
 
         # Missing Name
         actual = checkSingleJob(c, None, "T", "'F','I','D'", 1, Threshold(1), Threshold(2))
-        expected = {'returnCode': 3, 'returnMessage': 'UNKNOWN - Job Name missing'}
+        expected = {'returnCode': 3, 'returnMessage': '[UNKNOWN] - Job Name missing'}
         self.assertEqual(actual, expected)
 
         # Returns Warning

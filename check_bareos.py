@@ -154,13 +154,13 @@ def checkFailedBackups(cursor, time, warning, critical):
     result = len(results)
 
     if check_threshold(result, warning=warning, critical=critical) == CRITICAL:
-        checkState["returnCode"] = 2
+        checkState["returnCode"] = CRITICAL
         checkState["returnMessage"] = "[CRITICAL]"
     elif check_threshold(result, warning=warning, critical=critical) == WARNING:
-        checkState["returnCode"] = 1
+        checkState["returnCode"] = WARNING
         checkState["returnMessage"] = "[WARNING]"
     else:
-        checkState["returnCode"] = 0
+        checkState["returnCode"] = OK
         checkState["returnMessage"] = "[OK]"
 
     checkState["returnMessage"] +=  " - " + str(result) + " Backups failed/canceled in the last " + str(time) + " days"
@@ -196,14 +196,14 @@ def checkTotalBackupSize(cursor, time, kind, unit, warning, critical):
     result = checkBackupSize(cursor, time, kind, createFactor(unit))
 
     if check_threshold(result, warning=warning, critical=critical) == CRITICAL:
-        checkState["returnCode"] = 2
+        checkState["returnCode"] = CRITICAL
         checkState["returnMessage"] = "[CRITICAL]"
 
     elif check_threshold(result, warning=warning, critical=critical) == WARNING:
-        checkState["returnCode"] = 1
+        checkState["returnCode"] = WARNING
         checkState["returnMessage"] = "[WARNING]"
     else:
-        checkState["returnCode"] = 0
+        checkState["returnCode"] = OK
         checkState["returnMessage"] = "[OK]"
 
     checkState["returnMessage"] += " - " + str(result) + " " + unit + " Kind:" + kind
@@ -235,13 +235,13 @@ def checkOversizedBackups(cursor, time, size, kind, unit, warning, critical):
     result = len(results)
 
     if check_threshold(result, warning=warning, critical=critical) == CRITICAL:
-        checkState["returnCode"] = 2
+        checkState["returnCode"] = CRITICAL
         checkState["returnMessage"] = "[CRITICAL]"
     elif check_threshold(result, warning=warning, critical=critical) == WARNING:
-        checkState["returnCode"] = 1
+        checkState["returnCode"] = WARNING
         checkState["returnMessage"] = "[WARNING]"
     else:
-        checkState["returnCode"] = 0
+        checkState["returnCode"] = OK
         checkState["returnMessage"] = "[OK]"
 
     checkState["returnMessage"] += " - " + str(result) + " " + kind + " Backups larger than " + str(size) + " " + unit + " in the last " + str(time) + " days"
@@ -268,13 +268,13 @@ def checkEmptyBackups(cursor, time, kind, warning, critical):
     result = len(results)
 
     if check_threshold(result, warning=warning, critical=critical) == CRITICAL:
-        checkState["returnCode"] = 2
+        checkState["returnCode"] = CRITICAL
         checkState["returnMessage"] = "[CRITICAL] - " + str(result) + " successful " + str(kind) + " backups are empty"
     elif check_threshold(result, warning=warning, critical=critical) == WARNING:
-        checkState["returnCode"] = 1
+        checkState["returnCode"] = WARNING
         checkState["returnMessage"] = "[WARNING] - " + str(result) + " successful " + str(kind) + " backups are empty!"
     else:
-        checkState["returnCode"] = 0
+        checkState["returnCode"] = OK
         checkState["returnMessage"] = "[OK] - All " + str(kind) + " Backups are fine"
 
     checkState["performanceData"] = "bareos.backup.empty=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
@@ -299,13 +299,13 @@ def checkJobs(cursor, state, kind, time, warning, critical):
     result = float(results[0])
 
     if check_threshold(result, warning=warning, critical=critical) == CRITICAL:
-        checkState["returnCode"] = 2
+        checkState["returnCode"] = CRITICAL
         checkState["returnMessage"] = "[CRITICAL]"
     elif check_threshold(result, warning=warning, critical=critical) == WARNING:
-        checkState["returnCode"] = 1
+        checkState["returnCode"] = WARNING
         checkState["returnMessage"] = "[WARNING]"
     else:
-        checkState["returnCode"] = 0
+        checkState["returnCode"] = OK
         checkState["returnMessage"] = "[OK]"
 
     checkState["returnMessage"] += " - " + str(result) + " Jobs are in the state: " + JOBSTATES.get(state, state)
@@ -320,8 +320,8 @@ def checkSingleJob(cursor, name, state, kind, time, warning, critical):
 
     # Return on empty name
     if not name:
-        checkState["returnCode"] = 3
-        checkState["returnMessage"] = "UNKNOWN - Job Name missing"
+        checkState["returnCode"] = UNKNOWN
+        checkState["returnMessage"] = "[UNKNOWN] - Job Name missing"
         return checkState
 
     if time is None:
@@ -338,13 +338,13 @@ def checkSingleJob(cursor, name, state, kind, time, warning, critical):
     result = len(results)
 
     if check_threshold(result, warning=warning, critical=critical) == CRITICAL:
-        checkState["returnCode"] = 2
+        checkState["returnCode"] = CRITICAL
         checkState["returnMessage"] = "[CRITICAL]"
     elif check_threshold(result, warning=warning, critical=critical) == WARNING:
-        checkState["returnCode"] = 1
+        checkState["returnCode"] = WARNING
         checkState["returnMessage"] = "[WARNING]"
     else:
-        checkState["returnCode"] = 0
+        checkState["returnCode"] = OK
         checkState["returnMessage"] = "[OK]"
 
     checkState["returnMessage"] += " - " + str(result) + " Jobs are in the state: " + JOBSTATES.get(state, state)
@@ -371,13 +371,13 @@ def checkRunTimeJobs(cursor, state, time, warning, critical):
     result = float(results[0])
 
     if check_threshold(result, warning=warning, critical=critical) == CRITICAL:
-        checkState["returnCode"] = 2
+        checkState["returnCode"] = CRITICAL
         checkState["returnMessage"] = "[CRITICAL]"
     elif check_threshold(result, warning=warning, critical=critical) == WARNING:
-        checkState["returnCode"] = 1
+        checkState["returnCode"] = WARNING
         checkState["returnMessage"] = "[WARNING]"
     else:
-        checkState["returnCode"] = 0
+        checkState["returnCode"] = OK
         checkState["returnMessage"] = "[OK]"
 
     checkState["returnMessage"] += " - " + str(result) + " Jobs are running longer than " + str(time) + " days"
@@ -402,13 +402,13 @@ def checkTapesInStorage(cursor, warning, critical):
     result = float(results[0])
 
     if check_threshold(result, warning=warning, critical=critical) == CRITICAL:
-        checkState["returnCode"] = 2
+        checkState["returnCode"] = CRITICAL
         checkState["returnMessage"] = "[CRITICAL]"
     elif check_threshold(result, warning=warning, critical=critical) == WARNING:
-        checkState["returnCode"] = 1
+        checkState["returnCode"] = WARNING
         checkState["returnMessage"] = "[WARNING]"
     else:
-        checkState["returnCode"] = 0
+        checkState["returnCode"] = OK
         checkState["returnMessage"] = "[OK]"
 
     checkState["returnMessage"] += " - " + str(result) + " Tapes are in the Storage"
@@ -431,13 +431,13 @@ def checkExpiredTapes(cursor, warning, critical):
     result = float(results[0])
 
     if check_threshold(result, warning=warning, critical=critical) == CRITICAL:
-        checkState["returnCode"] = 2
+        checkState["returnCode"] = CRITICAL
         checkState["returnMessage"] = "[CRITICAL]"
     elif check_threshold(result, warning=warning, critical=critical) == WARNING:
-        checkState["returnCode"] = 1
+        checkState["returnCode"] = WARNING
         checkState["returnMessage"] = "[WARNING]"
     else:
-        checkState["returnCode"] = 0
+        checkState["returnCode"] = OK
         checkState["returnMessage"] = "[OK]"
 
     checkState["returnMessage"] += " - " + str(result) + " Tapes are expired"
@@ -460,13 +460,13 @@ def checkWillExpiredTapes(cursor, time, warning, critical):
     result = float(results[0])
 
     if check_threshold(result, warning=warning, critical=critical) == CRITICAL:
-        checkState["returnCode"] = 2
+        checkState["returnCode"] = CRITICAL
         checkState["returnMessage"] = "[CRITICAL]"
     elif check_threshold(result, warning=warning, critical=critical) == WARNING:
-        checkState["returnCode"] = 1
+        checkState["returnCode"] = WARNING
         checkState["returnMessage"] = "[WARNING]"
     else:
-        checkState["returnCode"] = 0
+        checkState["returnCode"] = OK
         checkState["returnMessage"] = "[OK]"
 
     checkState["returnMessage"] += " - " + str(result) + " Tapes will expire in " + str(time) + " days"
@@ -489,13 +489,13 @@ def checkReplaceTapes(cursor, mounts, warning, critical):
     result = float(results[0])
 
     if check_threshold(result, warning=warning, critical=critical) == CRITICAL:
-        checkState["returnCode"] = 2
+        checkState["returnCode"] = CRITICAL
         checkState["returnMessage"] = "[CRITICAL]"
     elif check_threshold(result, warning=warning, critical=critical) == WARNING:
-        checkState["returnCode"] = 1
+        checkState["returnCode"] = WARNING
         checkState["returnMessage"] = "[WARNING]"
     else:
-        checkState["returnCode"] = 0
+        checkState["returnCode"] = OK
         checkState["returnMessage"] = "[OK]"
 
     checkState["returnMessage"] += " - " + str(result) + " Tapes might need replacement"
@@ -522,13 +522,13 @@ def checkEmptyTapes(cursor, warning, critical):
     result = float(results[0])
 
     if check_threshold(result, warning=warning, critical=critical) == CRITICAL:
-        checkState["returnCode"] = 2
+        checkState["returnCode"] = CRITICAL
         checkState["returnMessage"] = "[CRITICAL]"
     elif check_threshold(result, warning=warning, critical=critical) == WARNING:
-        checkState["returnCode"] = 1
+        checkState["returnCode"] = WARNING
         checkState["returnMessage"] = "[WARNING]"
     else:
-        checkState["returnCode"] = 0
+        checkState["returnCode"] = OK
         checkState["returnMessage"] = "[OK]"
 
     checkState["returnMessage"] += " - " + str(result) + " Tapes are empty"
@@ -546,8 +546,8 @@ def connectDB(username, pw, hostname, databasename, port):
         return cursor
     except psycopg2.DatabaseError as e:
         checkState = {}
-        checkState["returnCode"] = 3
-        checkState["returnMessage"] = "UNKNOWN - " + str(e)[:-1]
+        checkState["returnCode"] = UNKNOWN
+        checkState["returnMessage"] = "[UNKNOWN] - " + str(e)[:-1]
         checkState["performanceData"] = ";;;;"
         printNagiosOutput(checkState)
 
@@ -556,9 +556,9 @@ def printNagiosOutput(checkResult):
     if checkResult is not None:
         print((checkResult["returnMessage"] + "|" + checkResult.get("performanceData", ";;;;")))
         sys.exit(checkResult["returnCode"])
-    else:
-        print("UNKNOWN - Error in Script")
-        sys.exit(3)
+
+    print("[UNKNOWN] - Error in Script")
+    sys.exit(3)
 
 
 def commandline(args):
@@ -622,83 +622,87 @@ def commandline(args):
 
 
 def checkConnection(cursor):
-    checkResult = {}
     if cursor is None:
-        checkResult["returnCode"] = 2
-        checkResult["returnMessage"] = "[CRITICAL] - No DB connection"
+        checkResult = {}
+        checkResult["returnCode"] = UNKNOWN
+        checkResult["returnMessage"] = "[UNKNOWN] - No DB connection"
         printNagiosOutput(checkResult)
-        return False
 
     return True
 
 
 def checkTape(args):
     cursor = connectDB(args.user, args.password, args.host, args.database, args.port)
-    checkResult = {}
+
+    checkConnection(cursor)
 
     warning = Threshold(args.warning)
     critical = Threshold(args.critical)
 
-    if checkConnection(cursor):
-        if args.emptyTapes:
-            checkResult = checkEmptyTapes(cursor, warning, critical)
-        if args.replaceTapes:
-            checkResult = checkReplaceTapes(cursor, args.mounts, warning, critical)
-        elif args.tapesInStorage:
-            checkResult = checkTapesInStorage(cursor, warning, critical)
-        elif args.expiredTapes:
-            checkResult = checkExpiredTapes(cursor, warning, critical)
-        elif args.willExpire:
-            checkResult = checkWillExpiredTapes(cursor, args.time, warning, critical)
+    checkResult = {}
 
-        printNagiosOutput(checkResult)
-        cursor.close()
+    if args.emptyTapes:
+        checkResult = checkEmptyTapes(cursor, warning, critical)
+    if args.replaceTapes:
+        checkResult = checkReplaceTapes(cursor, args.mounts, warning, critical)
+    elif args.tapesInStorage:
+        checkResult = checkTapesInStorage(cursor, warning, critical)
+    elif args.expiredTapes:
+        checkResult = checkExpiredTapes(cursor, warning, critical)
+    elif args.willExpire:
+        checkResult = checkWillExpiredTapes(cursor, args.time, warning, critical)
+
+    printNagiosOutput(checkResult)
+    cursor.close()
 
 
 def checkJob(args):
     cursor = connectDB(args.user, args.password, args.host, args.database, args.port)
-    checkResult = {}
+
+    checkConnection(cursor)
 
     warning = Threshold(args.warning)
     critical = Threshold(args.critical)
 
-    if checkConnection(cursor):
-        if args.checkJob:
-            kind = createBackupKindString(args.full, args.inc, args.diff)
-            checkResult = checkSingleJob(cursor, args.name, args.state, kind, args.time, warning, critical)
-        elif args.checkJobs:
-            kind = createBackupKindString(args.full, args.inc, args.diff)
-            checkResult = checkJobs(cursor, args.state, kind, args.time, warning, critical)
-        elif args.runTimeJobs:
-            checkResult = checkRunTimeJobs(cursor, args.state, args.time, warning, critical)
+    checkResult = {}
 
-        printNagiosOutput(checkResult)
-        cursor.close()
+    if args.checkJob:
+        kind = createBackupKindString(args.full, args.inc, args.diff)
+        checkResult = checkSingleJob(cursor, args.name, args.state, kind, args.time, warning, critical)
+    elif args.checkJobs:
+        kind = createBackupKindString(args.full, args.inc, args.diff)
+        checkResult = checkJobs(cursor, args.state, kind, args.time, warning, critical)
+    elif args.runTimeJobs:
+        checkResult = checkRunTimeJobs(cursor, args.state, args.time, warning, critical)
+
+    printNagiosOutput(checkResult)
+    cursor.close()
 
 
 def checkStatus(args):
     cursor = connectDB(args.user, args.password, args.host, args.database, args.port)
-    checkResult = {}
+    checkConnection(cursor)
 
     warning = Threshold(args.warning)
     critical = Threshold(args.critical)
 
-    if checkConnection(cursor):
-        if args.emptyBackups:
-            kind = createBackupKindString(args.full, args.inc, args.diff)
-            checkResult = checkEmptyBackups(cursor, args.time, kind, warning, critical)
-        elif args.totalBackupsSize:
-            kind = createBackupKindString(args.full, args.inc, args.diff)
-            checkResult = checkTotalBackupSize(cursor, args.time, kind, args.unit, warning, critical)
-        elif args.oversizedBackups:
-            kind = createBackupKindString(args.full, args.inc, args.diff)
-            checkResult = checkOversizedBackups(cursor, args.time, args.size, kind, args.unit, warning, critical)
-        elif args.failedBackups:
-            kind = createBackupKindString(args.full, args.inc, args.diff)
-            checkResult = checkFailedBackups(cursor, args.time, warning, critical)
+    checkResult = {}
 
-        printNagiosOutput(checkResult)
-        cursor.close()
+    if args.emptyBackups:
+        kind = createBackupKindString(args.full, args.inc, args.diff)
+        checkResult = checkEmptyBackups(cursor, args.time, kind, warning, critical)
+    elif args.totalBackupsSize:
+        kind = createBackupKindString(args.full, args.inc, args.diff)
+        checkResult = checkTotalBackupSize(cursor, args.time, kind, args.unit, warning, critical)
+    elif args.oversizedBackups:
+        kind = createBackupKindString(args.full, args.inc, args.diff)
+        checkResult = checkOversizedBackups(cursor, args.time, args.size, kind, args.unit, warning, critical)
+    elif args.failedBackups:
+        kind = createBackupKindString(args.full, args.inc, args.diff)
+        checkResult = checkFailedBackups(cursor, args.time, warning, critical)
+
+    printNagiosOutput(checkResult)
+    cursor.close()
 
 
 if __name__ == '__main__': # pragma: no cover
@@ -709,5 +713,5 @@ if __name__ == '__main__': # pragma: no cover
         # Re-throw the exception
         raise sys.exc_info()[1].with_traceback(sys.exc_info()[2]) # pylint: disable=raise-missing-from
     except: # pylint: disable=bare-except
-        print("UNKNOWN - Error: %s" % (str(sys.exc_info()[1])))
+        print("[UNKNOWN] - Error: %s" % (str(sys.exc_info()[1])))
         sys.exit(3)
