@@ -132,22 +132,20 @@ def checkTotalBackupSize(cursor, time, kind, unit, warning, critical):
 
     if result >= int(critical):
         checkState["returnCode"] = 2
+        checkState["returnMessage"] = "CRITICAL - " + str(result) + " " + unit + " Kind:" + kind
         if time:
-            checkState["returnMessage"] = "CRITICAL - " + str(result) + " " + unit + " Kind:" + kind + " Days: " + str(time)
-        else:
-            checkState["returnMessage"] = "CRITICAL - " + str(result) + " " + unit + " Kind:" + kind
+            checkState["returnMessage"] += " Days: " + str(time)
+
     elif result >= int(warning):
         checkState["returnCode"] = 1
+        checkState["returnMessage"] = "WARNING - " + str(result) + " " + unit + " Kind:" + kind
         if time:
-            checkState["returnMessage"] = "WARNING - " + str(result) + " " + unit + " Kind:" + kind + " Days: " + str(time)
-        else:
-            checkState["returnMessage"] = "WARNING - " + str(result) + " " + unit + " Kind:" + kind
+            checkState["returnMessage"] += " Days: " + str(time)
     else:
         checkState["returnCode"] = 0
+        checkState["returnMessage"] = "OK - " + str(result) + " " + unit + " Kind:" + kind
         if time:
-            checkState["returnMessage"] = "OK - " + str(result) + " " + unit + " Kind:" + kind + " Days: " + str(time)
-        else:
-            checkState["returnMessage"] = "OK - " + str(result) + " " + unit + " Kind:" + kind
+            checkState["returnMessage"] += " Days: " + str(time)
 
     checkState["performanceData"] = "Size=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
 
@@ -189,6 +187,7 @@ def checkOversizedBackups(cursor, time, size, kind, unit, warning, critical):
 
 def checkEmptyBackups(cursor, time, kind, warning, critical):
     checkState = {}
+
     if time is None:
         time = 7
 
@@ -226,7 +225,7 @@ def checkJobs(cursor, state, kind, time, warning, critical):
     query = """
     SELECT count(Job.Name)
     FROM Job
-    WHERE Job.JobStatus like '"""+str(state)+"""' AND (starttime > (now()::date-"""+str(time)+""" * '1 day'::INTERVAL) OR starttime IS NULL) AND Job.Level in ("""+kind+""");
+    WHERE Job.JobStatus like '""" + str(state) + """' AND (starttime > (now()::date-""" + str(time) + """ * '1 day'::INTERVAL) OR starttime IS NULL) AND Job.Level in (""" + kind + """);
     """
 
     cursor.execute(query)
@@ -294,7 +293,7 @@ def checkRunTimeJobs(cursor,state,time,warning,critical):
     query = """
     SELECT Count(Job.Name)
     FROM Job
-    WHERE starttime < (now()::date-"""+str(time)+""" * '1 day'::INTERVAL) AND Job.JobStatus like '"""+state+"""';
+    WHERE starttime < (now()::date-""" + str(time) + """ * '1 day'::INTERVAL) AND Job.JobStatus like '""" + state + """';
     """
 
     cursor.execute(query)
@@ -303,13 +302,13 @@ def checkRunTimeJobs(cursor,state,time,warning,critical):
 
     if result >= int(critical):
         checkState["returnCode"] = 2
-        checkState["returnMessage"] = "CRITICAL - " + str(result) + " Jobs are running longer than "+str(time)+" days"
+        checkState["returnMessage"] = "CRITICAL - " + str(result) + " Jobs are running longer than " + str(time) + " days"
     elif result >= int(warning):
         checkState["returnCode"] = 1
-        checkState["returnMessage"] = "WARNING - " + str(result) + " Jobs are running longer than "+str(time)+" days"
+        checkState["returnMessage"] = "WARNING - " + str(result) + " Jobs are running longer than " + str(time) + " days"
     else:
         checkState["returnCode"] = 0
-        checkState["returnMessage"] = "OK - " + str(result) + " Jobs are running longer than "+str(time)+" days"
+        checkState["returnMessage"] = "OK - " + str(result) + " Jobs are running longer than " + str(time) + " days"
 
     checkState["performanceData"] = "Count=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
 
