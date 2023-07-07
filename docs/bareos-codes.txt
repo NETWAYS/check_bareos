@@ -1,0 +1,55 @@
+// Job levels Description
+// F    Full backup: Every files
+// I    Incremental: Files modified since last backup
+// D    Differential: Files modified since last full backup
+// S    Since: Not used
+// f    Virtual full backup
+// B    Base level job
+// --           None: for Restore and Admin
+
+// Job types Description
+// B    Backup Job
+// V    Verify Job
+// R    Restore Job
+// D    Admin job
+// C    Copy of a Job
+// c    Copy Job
+// M    A previous backup job that was migrated
+// g    Migration Job
+// A    Archive Job
+// S    Scan Job
+// U    Console program
+// I    Internal system “job”
+
+{"B", "V", "R", "D", "C", "c", "M", "g", "A", "S", "U", "I"}
+
+// Job Status Description
+// A    Job canceled by user
+// B    Job blocked
+// C    Job created but not yet running
+// D    Verify differences
+// E    Job terminated in error
+// F    Job waiting on File daemon
+// I    Incomplete Job
+// L    Committing data (last despool)
+// M    Job waiting for Mount
+// R    Job running
+// S    Job waiting on the Storage daemon
+// T    Job terminated normally
+// W    Job terminated normally with warnings
+// a    SD despooling attributes
+// c    Waiting for Client resource
+// d    Waiting for maximum jobs
+// e    Non-fatal error
+// f    Fatal error
+// i    Doing batch insert file records
+// j    Waiting for job resource
+// l    Doing data despooling
+// m    Waiting for new media
+// p    Waiting for higher priority jobs to finish
+// q    Queued waiting for device
+// s    Waiting for storage resource
+// t    Waiting for start time
+
+
+{"A", "B", "C", "D", "E", "F", "I", "L", "M", "R", "S", "T", "W", "a", "c", "d", "e", "f", "i", "j", "l", "m", "p", "q", "s", "t"}
