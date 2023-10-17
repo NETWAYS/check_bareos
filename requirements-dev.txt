@@ -1,2 +1,2 @@
-pylint==2.15.0
+pylint==3.0.1
 coverage==7.0.5
