@@ -9,6 +9,7 @@ sys.path.append('..')
 
 
 from check_bareos import commandline
+from check_bareos import read_password_from_file
 from check_bareos import createBackupKindString
 from check_bareos import createFactor
 from check_bareos import printNagiosOutput
@@ -102,6 +103,13 @@ class UtilTesting(unittest.TestCase):
             actual = printNagiosOutput({'returnCode': 1, 'returnMessage': "bar", 'performanceData': 'foo'})
         self.assertEqual(sysexit.exception.code, 1)
 
+    def test_read_password_from_file(self):
+        actual = read_password_from_file('contrib/bareos-dir.conf')
+        expected = 'secretpassword'
+        self.assertEqual(actual, expected)
+
+        with self.assertRaises(FileNotFoundError) as sysexit:
+            read_password_from_file('contrib/nosuch')
 
 class SQLTesting(unittest.TestCase):
 
