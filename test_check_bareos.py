@@ -2,6 +2,7 @@
 
 import unittest
 import unittest.mock as mock
+import os
 import sys
 
 sys.path.append('..')
@@ -37,6 +38,16 @@ class CLITesting(unittest.TestCase):
         actual = commandline(['-H', 'localhost', '-U', 'bareos'])
         self.assertEqual(actual.host, 'localhost')
         self.assertEqual(actual.user, 'bareos')
+
+
+    def test_commandline_fromenv(self):
+        os.environ['CHECK_BAREOS_DATABASE_PASSWORD'] = 'secret'
+
+        actual = commandline(['-H', 'localhost', '-U', 'bareos'])
+        self.assertEqual(actual.user, 'bareos')
+        self.assertEqual(actual.password, 'secret')
+
+        os.unsetenv('CHECK_BAREOS_DATABASE_PASSWORD')
 
 class ThresholdTesting(unittest.TestCase):
 

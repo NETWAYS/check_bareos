@@ -15,6 +15,7 @@
 import argparse
 import sys
 import re
+import os
 import psycopg2
 import psycopg2.extras
 
@@ -562,10 +563,19 @@ def printNagiosOutput(checkResult):
 
 
 def commandline(args):
+    """
+    Parse commandline arguments.
+    """
+    def environ_or_required(key):
+        return ({'default': os.environ.get(key)} if os.environ.get(key) else {})
+
     parser = argparse.ArgumentParser(description='Check Plugin for Bareos Backup Status')
     group = parser.add_argument_group()
     group.add_argument('-U', '--user', dest='user', action='store', required=True, help='user name for the database connections')
-    group.add_argument('-p', '--password', dest='password', action='store', help='password for the database connections', default="")
+    group.add_argument('-p', '--password', dest='password', action='store',
+                       **environ_or_required('CHECK_BAREOS_DATABASE_PASSWORD'),
+                       help='password for the database connections')
+
     group.add_argument('-H', '--Host', dest='host', action='store', help='database host', default="127.0.0.1")
     group.add_argument('-P', '--port', dest='port', action='store', help='database port', default=5432, type=int)
     group.add_argument('-d', '--database', dest='database', default='bareos', help='database name')
