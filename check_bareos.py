@@ -601,7 +601,7 @@ def commandline(args):
 
     password_group.add_argument('-p', '--password', dest='password', action='store',
                                 **environ_or_required('CHECK_BAREOS_DATABASE_PASSWORD'),
-                                help='password for the database connections')
+                                help='password for the database connections (CHECK_BAREOS_DATABASE_PASSWORD)')
     password_group.add_argument('--password-file', dest='password_file', action='store',
                                 default='/etc/bareos/bareos-dir.conf',
                                 help='path to a password file. Can be the bareos-dir.conf')
