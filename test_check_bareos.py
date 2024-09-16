@@ -2,12 +2,14 @@
 
 import unittest
 import unittest.mock as mock
+import os
 import sys
 
 sys.path.append('..')
 
 
 from check_bareos import commandline
+from check_bareos import read_password_from_file
 from check_bareos import createBackupKindString
 from check_bareos import createFactor
 from check_bareos import printNagiosOutput
@@ -37,6 +39,16 @@ class CLITesting(unittest.TestCase):
         actual = commandline(['-H', 'localhost', '-U', 'bareos'])
         self.assertEqual(actual.host, 'localhost')
         self.assertEqual(actual.user, 'bareos')
+
+
+    def test_commandline_fromenv(self):
+        os.environ['CHECK_BAREOS_DATABASE_PASSWORD'] = 'secret'
+
+        actual = commandline(['-H', 'localhost', '-U', 'bareos'])
+        self.assertEqual(actual.user, 'bareos')
+        self.assertEqual(actual.password, 'secret')
+
+        os.unsetenv('CHECK_BAREOS_DATABASE_PASSWORD')
 
 class ThresholdTesting(unittest.TestCase):
 
@@ -91,6 +103,13 @@ class UtilTesting(unittest.TestCase):
             actual = printNagiosOutput({'returnCode': 1, 'returnMessage': "bar", 'performanceData': 'foo'})
         self.assertEqual(sysexit.exception.code, 1)
 
+    def test_read_password_from_file(self):
+        actual = read_password_from_file('contrib/bareos-dir.conf')
+        expected = 'secretpassword'
+        self.assertEqual(actual, expected)
+
+        with self.assertRaises(FileNotFoundError) as sysexit:
+            read_password_from_file('contrib/nosuch')
 
 class SQLTesting(unittest.TestCase):
 

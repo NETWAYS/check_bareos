@@ -32,13 +32,17 @@ options:
 
   -U USER, --user USER  user name for the database connections
   -p PASSWORD, --password PASSWORD
-                        password for the database connections
+                        password for the database connections (CHECK_BAREOS_DATABASE_PASSWORD)
+  --password-file PASSWORD_FILE
+                        path to a password file. Can be the bareos-dir.conf
   -H HOST, --Host HOST  database host
   -P PORT, --port PORT  database port
   -d DATABASE, --database DATABASE
                         database name
   -v, --version         show program's version number and exit
 ```
+
+Various flags can be set with environment variables, refer to the help to see which flags.
 
 ## Job
 

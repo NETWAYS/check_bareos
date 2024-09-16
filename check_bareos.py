@@ -15,6 +15,7 @@
 import argparse
 import sys
 import re
+import os
 import psycopg2
 import psycopg2.extras
 
@@ -56,6 +57,30 @@ JOBSTATES = {
     't': 'Waiting for start time'
 }
 
+
+def read_password_from_file(fp):
+    """
+    Tries to read a password from the given file
+    This allows to extract the password from the Bareos configuration
+    or from any other file that contains 'Password = secretpassword'
+    """
+    l = []
+    password = None
+    # Extract the password from the given file
+    with open(fp, encoding='utf-8') as pwfile:
+        for line in pwfile:
+            line = line.strip()
+            if 'Password' in line:
+                l = line.split()
+    # Validate that we got a password
+    try:
+        password = l[2]
+    except IndexError:
+        pass
+    if not password:
+        raise ValueError('No password found in', fp)
+
+    return password
 
 def check_threshold(value, warning, critical):
     # checks a value against warning and critical thresholds
@@ -562,10 +587,25 @@ def printNagiosOutput(checkResult):
 
 
 def commandline(args):
+    """
+    Parse commandline arguments.
+    """
+    def environ_or_required(key):
+        return ({'default': os.environ.get(key)} if os.environ.get(key) else {})
+
     parser = argparse.ArgumentParser(description='Check Plugin for Bareos Backup Status')
     group = parser.add_argument_group()
     group.add_argument('-U', '--user', dest='user', action='store', required=True, help='user name for the database connections')
-    group.add_argument('-p', '--password', dest='password', action='store', help='password for the database connections', default="")
+
+    password_group = group.add_mutually_exclusive_group()
+
+    password_group.add_argument('-p', '--password', dest='password', action='store',
+                                **environ_or_required('CHECK_BAREOS_DATABASE_PASSWORD'),
+                                help='password for the database connections (CHECK_BAREOS_DATABASE_PASSWORD)')
+    password_group.add_argument('--password-file', dest='password_file', action='store',
+                                default='/etc/bareos/bareos-dir.conf',
+                                help='path to a password file. Can be the bareos-dir.conf')
+
     group.add_argument('-H', '--Host', dest='host', action='store', help='database host', default="127.0.0.1")
     group.add_argument('-P', '--port', dest='port', action='store', help='database port', default=5432, type=int)
     group.add_argument('-d', '--database', dest='database', default='bareos', help='database name')
@@ -708,6 +748,10 @@ def checkStatus(args):
 if __name__ == '__main__': # pragma: no cover
     try:
         ARGS = commandline(sys.argv[1:])
+
+        if ARGS.password_file and not ARGS.password:
+            ARGS.password = read_password_from_file(ARGS.password_file)
+
         ARGS.func(ARGS)
     except SystemExit:
         # Re-throw the exception
