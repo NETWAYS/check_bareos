@@ -66,6 +66,11 @@ class ThresholdTesting(unittest.TestCase):
         self.assertEqual(check_threshold(5, Threshold("10:20"), Threshold("50")), 1)
         self.assertEqual(check_threshold(10, Threshold("@10:20"), Threshold("50")), 1)
 
+        self.assertEqual(repr(Threshold("@10:20")), 'Threshold(@10:20)')
+
+    def test_thresholds_with_error(self):
+        with self.assertRaises(ValueError):
+            Threshold("()*!#$209810")
 
 class UtilTesting(unittest.TestCase):
 
@@ -84,8 +89,12 @@ class UtilTesting(unittest.TestCase):
         self.assertEqual(actual, expected)
 
     def test_createBackupKindString(self):
-        actual = createBackupKindString(True, True, True)
-        expected = "'F','I','D'"
+        actual = createBackupKindString(True, True, False)
+        expected = "'F','I'"
+        self.assertEqual(actual, expected)
+
+        actual = createBackupKindString(False, False, False)
+        expected = "'F','D','I'"
         self.assertEqual(actual, expected)
 
     def test_createFactor(self):
@@ -107,6 +116,9 @@ class UtilTesting(unittest.TestCase):
         actual = read_password_from_file('contrib/bareos-dir.conf')
         expected = 'secretpassword'
         self.assertEqual(actual, expected)
+
+        with self.assertRaises(ValueError) as sysexit:
+            read_password_from_file('contrib/icinga2-commands-example.conf')
 
         with self.assertRaises(FileNotFoundError) as sysexit:
             read_password_from_file('contrib/nosuch')
