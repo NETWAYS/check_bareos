@@ -36,15 +36,20 @@ from check_bareos import checkWillExpiredTapes
 class CLITesting(unittest.TestCase):
 
     def test_commandline(self):
-        actual = commandline(['-H', 'localhost', '-U', 'bareos'])
+        actual = commandline(['-H', 'localhost', '-U', 'bareos', 'status', '-fb'])
         self.assertEqual(actual.host, 'localhost')
         self.assertEqual(actual.user, 'bareos')
 
+    @mock.patch('builtins.print')
+    @mock.patch('sys.stdout')
+    def test_commandline_with_missing(self, mock_print, mock_out):
+        with self.assertRaises(SystemExit) as sysexit:
+            commandline(['-H', 'localhost', '-U', 'bareos', '--password', 'foobar'])
 
     def test_commandline_fromenv(self):
         os.environ['CHECK_BAREOS_DATABASE_PASSWORD'] = 'secret'
 
-        actual = commandline(['-H', 'localhost', '-U', 'bareos'])
+        actual = commandline(['-H', 'localhost', '-U', 'bareos', 'status', '-fb'])
         self.assertEqual(actual.user, 'bareos')
         self.assertEqual(actual.password, 'secret')
 

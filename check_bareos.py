@@ -658,7 +658,14 @@ def commandline(args):
     statusParser.add_argument('-s', '--size', dest='size', action='store', help='Border value for oversized backups [default=2]', default=2)
     statusParser.add_argument('-u', '--unit', dest='unit', choices=['MB', 'GB', 'TB', 'PB', 'EB'], default='TB', help='display unit [default=TB]')
 
-    return parser.parse_args(args)
+    parsed = parser.parse_args(args)
+
+    if not hasattr(parsed, 'func'):
+        print("[UNKNOWN] - Error: Object to check is missing")
+        parser.print_help()
+        sys.exit(3)
+
+    return parsed
 
 
 def checkConnection(cursor):
