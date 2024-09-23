@@ -318,11 +318,11 @@ class SQLTesting(unittest.TestCase):
 
         # Nothing returned from DB
         c.fetchall.return_value = []
-        actual = checkSingleJob(c, "Jobby", "E", "'F','I','D'", 1, Threshold(1), Threshold(2))
+        actual = checkSingleJob(c, "Jobby", "'E'", "'F','I','D'", 1, Threshold(1), Threshold(2))
         expected = {'performanceData': "'bareos.Job terminated in error'=0;1;2;;", 'returnCode': 0, 'returnMessage': '[OK] - 0 Jobs are in the state: Job terminated in error'}
         self.assertEqual(actual, expected)
 
-        c.execute.assert_called_with("\n    SELECT Job.Name,Job.JobStatus, Job.Starttime\n    FROM Job\n    WHERE Job.Name like '%Jobby%' AND Job.JobStatus like 'E' AND (starttime > (now()::date-1 * '1 day'::INTERVAL) OR starttime IS NULL) AND Job.Level in ('F','I','D');\n    ")
+        c.execute.assert_called_with("\n    SELECT Job.Name,Job.JobStatus, Job.Starttime\n    FROM Job\n    WHERE Job.Name like '%Jobby%' AND Job.JobStatus in ('E') AND (starttime > (now()::date-1 * '1 day'::INTERVAL) OR starttime IS NULL) AND Job.Level in ('F','I','D');\n    ")
 
         # Missing Name
         actual = checkSingleJob(c, None, "T", "'F','I','D'", 1, Threshold(1), Threshold(2))

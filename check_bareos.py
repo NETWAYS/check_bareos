@@ -355,7 +355,7 @@ def checkSingleJob(cursor, name, state, kind, time, warning, critical):
     query = """
     SELECT Job.Name,Job.JobStatus, Job.Starttime
     FROM Job
-    WHERE Job.Name like '%"""+name+"""%' AND Job.JobStatus like '"""+state+"""' AND (starttime > (now()::date-"""+str(time)+""" * '1 day'::INTERVAL) OR starttime IS NULL) AND Job.Level in ("""+kind+""");
+    WHERE Job.Name like '%"""+name+"""%' AND Job.JobStatus in ("""+state+""") AND (starttime > (now()::date-"""+str(time)+""" * '1 day'::INTERVAL) OR starttime IS NULL) AND Job.Level in ("""+kind+""");
     """
 
     cursor.execute(query)
