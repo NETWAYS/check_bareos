@@ -388,7 +388,7 @@ def checkRunTimeJobs(cursor, state, time, warning, critical):
     query = """
     SELECT Count(Job.Name)
     FROM Job
-    WHERE starttime < (now()::date-""" + str(time) + """ * '1 day'::INTERVAL) AND Job.JobStatus like '""" + state + """';
+    WHERE starttime < (now()::date-""" + str(time) + """ * '1 day'::INTERVAL) AND Job.JobStatus in (""" + state + """);
     """
 
     cursor.execute(query)
@@ -405,7 +405,7 @@ def checkRunTimeJobs(cursor, state, time, warning, critical):
         checkState["returnCode"] = OK
         checkState["returnMessage"] = "[OK]"
 
-    checkState["returnMessage"] += " - " + str(result) + " Jobs are running longer than " + str(time) + " days"
+    checkState["returnMessage"] += " - " + str(result) + " Jobs in state " + state.replace("'", "") + " are running longer than " + str(time) + " days"
 
     checkState["performanceData"] = "bareos.job.count=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
 

@@ -191,14 +191,15 @@ class SQLTesting(unittest.TestCase):
 
         c.fetchone.return_value = [2]
         actual = checkRunTimeJobs(c, "'F','I','D'", 1, Threshold(3), Threshold(5))
-        expected = {'returnCode': 0, 'returnMessage': '[OK] - 2.0 Jobs are running longer than 1 days', 'performanceData': 'bareos.job.count=2.0;3;5;;'}
+        c.execute.assert_called_with("\n    SELECT Count(Job.Name)\n    FROM Job\n    WHERE starttime < (now()::date-1 * '1 day'::INTERVAL) AND Job.JobStatus in ('F','I','D');\n    ")
+
+        expected = {'returnCode': 0, 'returnMessage': '[OK] - 2.0 Jobs in state F,I,D are running longer than 1 days', 'performanceData': 'bareos.job.count=2.0;3;5;;'}
         self.assertEqual(actual, expected)
 
         c.fetchone.return_value = [10]
         actual = checkRunTimeJobs(c, "'F','I','D'", 1, Threshold(3), Threshold(5))
-        expected = {'returnCode': 2, 'returnMessage': '[CRITICAL] - 10.0 Jobs are running longer than 1 days', 'performanceData': 'bareos.job.count=10.0;3;5;;'}
+        expected = {'returnCode': 2, 'returnMessage': '[CRITICAL] - 10.0 Jobs in state F,I,D are running longer than 1 days', 'performanceData': 'bareos.job.count=10.0;3;5;;'}
         self.assertEqual(actual, expected)
-
 
     def test_checkEmptyBackups(self):
 
