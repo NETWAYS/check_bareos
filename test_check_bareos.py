@@ -36,15 +36,20 @@ from check_bareos import checkWillExpiredTapes
 class CLITesting(unittest.TestCase):
 
     def test_commandline(self):
-        actual = commandline(['-H', 'localhost', '-U', 'bareos'])
+        actual = commandline(['-H', 'localhost', '-U', 'bareos', 'status', '-fb'])
         self.assertEqual(actual.host, 'localhost')
         self.assertEqual(actual.user, 'bareos')
 
+    @mock.patch('builtins.print')
+    @mock.patch('sys.stdout')
+    def test_commandline_with_missing(self, mock_print, mock_out):
+        with self.assertRaises(SystemExit) as sysexit:
+            commandline(['-H', 'localhost', '-U', 'bareos', '--password', 'foobar'])
 
     def test_commandline_fromenv(self):
         os.environ['CHECK_BAREOS_DATABASE_PASSWORD'] = 'secret'
 
-        actual = commandline(['-H', 'localhost', '-U', 'bareos'])
+        actual = commandline(['-H', 'localhost', '-U', 'bareos', 'status', '-fb'])
         self.assertEqual(actual.user, 'bareos')
         self.assertEqual(actual.password, 'secret')
 
@@ -66,6 +71,11 @@ class ThresholdTesting(unittest.TestCase):
         self.assertEqual(check_threshold(5, Threshold("10:20"), Threshold("50")), 1)
         self.assertEqual(check_threshold(10, Threshold("@10:20"), Threshold("50")), 1)
 
+        self.assertEqual(repr(Threshold("@10:20")), 'Threshold(@10:20)')
+
+    def test_thresholds_with_error(self):
+        with self.assertRaises(ValueError):
+            Threshold("()*!#$209810")
 
 class UtilTesting(unittest.TestCase):
 
@@ -84,8 +94,12 @@ class UtilTesting(unittest.TestCase):
         self.assertEqual(actual, expected)
 
     def test_createBackupKindString(self):
-        actual = createBackupKindString(True, True, True)
-        expected = "'F','I','D'"
+        actual = createBackupKindString(True, True, False)
+        expected = "'F','I'"
+        self.assertEqual(actual, expected)
+
+        actual = createBackupKindString(False, False, False)
+        expected = "'F','D','I'"
         self.assertEqual(actual, expected)
 
     def test_createFactor(self):
@@ -107,6 +121,9 @@ class UtilTesting(unittest.TestCase):
         actual = read_password_from_file('contrib/bareos-dir.conf')
         expected = 'secretpassword'
         self.assertEqual(actual, expected)
+
+        with self.assertRaises(ValueError) as sysexit:
+            read_password_from_file('contrib/icinga2-commands-example.conf')
 
         with self.assertRaises(FileNotFoundError) as sysexit:
             read_password_from_file('contrib/nosuch')
