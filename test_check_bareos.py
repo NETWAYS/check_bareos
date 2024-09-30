@@ -190,13 +190,13 @@ class SQLTesting(unittest.TestCase):
         c = mock.MagicMock()
 
         c.fetchone.return_value = [2]
-        actual = checkRunTimeJobs(c, "'F','I','D'", 1, Threshold(3), Threshold(5))
-        expected = {'returnCode': 0, 'returnMessage': '[OK] - 2.0 Jobs are running longer than 1 days', 'performanceData': 'bareos.job.count=2.0;3;5;;'}
+        actual = checkRunTimeJobs(c, "D", 1, Threshold(3), Threshold(5))
+        expected = {'returnCode': 0, 'returnMessage': "[OK] - 2.0 Jobs in state 'Verify differences' are running longer than 1 days", 'performanceData': 'bareos.job.count=2.0;3;5;;'}
         self.assertEqual(actual, expected)
 
         c.fetchone.return_value = [10]
-        actual = checkRunTimeJobs(c, "'F','I','D'", 1, Threshold(3), Threshold(5))
-        expected = {'returnCode': 2, 'returnMessage': '[CRITICAL] - 10.0 Jobs are running longer than 1 days', 'performanceData': 'bareos.job.count=10.0;3;5;;'}
+        actual = checkRunTimeJobs(c, "F", 1, Threshold(3), Threshold(5))
+        expected = {'returnCode': 2, 'returnMessage': "[CRITICAL] - 10.0 Jobs in state 'Job waiting on File daemon' are running longer than 1 days", 'performanceData': 'bareos.job.count=10.0;3;5;;'}
         self.assertEqual(actual, expected)
 
 
