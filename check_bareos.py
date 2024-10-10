@@ -405,7 +405,7 @@ def checkRunTimeJobs(cursor, state, time, warning, critical):
         checkState["returnCode"] = OK
         checkState["returnMessage"] = "[OK]"
 
-    checkState["returnMessage"] += " - " + str(result) + " Jobs are running longer than " + str(time) + " days"
+    checkState["returnMessage"] += " - " + str(result) + " Jobs in state '" + JOBSTATES.get(state, state) + "' are running longer than " + str(time) + " days"
 
     checkState["performanceData"] = "bareos.job.count=" + str(result) + ";" + str(warning) + ";" + str(critical) + ";;"
 
