@@ -44,6 +44,8 @@ options:
 
 Various flags can be set with environment variables, refer to the help to see which flags.
 
+The plugin supports threshold and ranges for various flags.
+
 ## Job
 
 Check the status of Bareos Jobs.
@@ -75,13 +77,13 @@ options:
 
 ### Examples
 
-Check if a job is runing longar than 7 days (default value):
+Check if a job is running longer than 7 days (default value):
 
 ```bash
 check_bareos.py job -rt -t 4 -st R  -w 1 -c 4
 ```
 
-Check how much jobs are in the wating status:
+Check how much jobs are in the waiting status:
 
 ```bash
 check_bareos.py job -js -w 50 -c 100
@@ -189,13 +191,13 @@ Check total size of all inc backups:
 check_bareos.py status -b -i -w 400 -c 500
 ```
 
-Check if a full backup has 0 Bytes(is Empty) and trigger warning it is at least 1 and trigger ciritcal if more than 5 are empty:
+Check if a full backup has 0 Bytes(is Empty) and trigger critical if amount of empty backups is above 10; warning if above zero
 
 ```bash
-check_bareos.py status -e -f -w 1 -c 5
+check_bareos.py status -e -f -w '~:0' -c 10
 ```
 
-Check if a diff/inc backup is larger than 2 TB (default value) and trigger warning it is at least 1 and trigger ciritcal if more than 5 are empty:
+Check if a diff/inc backup is larger than 2 TB (default value) and trigger warning if more than one is empty, critical when more than five are empty:
 
 ```bash
 check_bareos.py status -o -d -i -w 1 -c 5
